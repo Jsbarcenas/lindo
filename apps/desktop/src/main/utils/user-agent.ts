@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import ElectronStore from 'electron-store'
 import { AndroidProfile } from '@lindo/shared'
-import { createAndroidProfile } from './android-profile'
+import { createAndroidProfile, withCurrentChromeVersion } from './android-profile'
 
 interface UserAgentStore {
   /**
@@ -33,7 +33,11 @@ export const getAndroidProfile = async (): Promise<AndroidProfile> => {
   const stored = storage.get('androidProfile')
 
   if (stored && new Date(stored.maxAge) > now) {
-    return stored.profile
+    const profile = withCurrentChromeVersion(stored.profile)
+    if (profile !== stored.profile) {
+      storage.set('androidProfile', { profile, maxAge: stored.maxAge })
+    }
+    return profile
   }
 
   const profile = createAndroidProfile()

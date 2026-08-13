@@ -4,9 +4,9 @@ import fs from 'fs-extra'
 import path from 'path'
 import * as beautify from 'js-beautify'
 import { UpdaterWindow } from '../windows/updater-window'
-import { DiffManifest, Files, ItunesLookup, Manifest, RegexPatches, retrieveManifests } from '@lindo/updater-core'
+import { DiffManifest, Files, Manifest, RegexPatches, retrieveManifests } from '@lindo/updater-core'
 import {
-  DOFUS_ITUNES_ORIGIN,
+  DOFUS_ANDROID_APP_VERSION,
   DOFUS_ORIGIN,
   GAME_BASE_PATH,
   GAME_PATH,
@@ -266,13 +266,18 @@ export class GameUpdater {
       ? JSON.parse(fs.readFileSync(LOCAL_VERSIONS_PATH, 'utf-8'))
       : {}
 
+    // Set unconditionally, unlike buildVersion below. It used to be fetched from
+    // Apple's lookup endpoint alongside reading the bundle, so it was gated on
+    // the bundle having been re-downloaded. It no longer comes from there, and
+    // leaving it gated meant any install that already had script.js would keep
+    // the old value forever - the change would have looked applied and done
+    // nothing.
+    localVersions.appVersion = DOFUS_ANDROID_APP_VERSION
+
     const buildScriptFile = missingDofusFiles['build/script.js']
     if (buildScriptFile && typeof buildScriptFile === 'string') {
       logger.info('FETCH BUILD VERSION FROM script.js')
       localVersions.buildVersion = buildScriptFile.match(/window\.buildVersion\s?=\s?"(\d+\.\d+\.\d+(?:-\d+)?)"/)![1]
-      localVersions.appVersion = await this._httpClient
-        .get<ItunesLookup>(DOFUS_ITUNES_ORIGIN)
-        .then((response) => response.data.results[0].version)
     }
 
     logger.info(

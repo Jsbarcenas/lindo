@@ -44,6 +44,21 @@
 
         window.installLindoPlatform(window, androidProfile);
 
+        // The renderer hosting this frame is reachable from inside it - the
+        // bundle itself uses `top.console` and `window.top.FileLoggerLib - so
+        // `top.navigator.platform` was still answering with the host. Its input
+        // traits are left alone: that window draws the React interface, which
+        // lays itself out from pointer and hover queries.
+        try {
+            if (window.top !== window) {
+                window.top.installLindoPlatform =
+                    window.top.installLindoPlatform || window.installLindoPlatform;
+                window.installLindoPlatform(window.top, androidProfile, { inputTraits: false });
+            }
+        } catch (e) {
+            top.console.log("lindo: could not install platform on the parent", e);
+        }
+
         // Init
         window.buildVersion = window.top.buildVersion;
         window.appVersion = window.top.appVersion;
@@ -65,28 +80,50 @@
 
         // installLindoPlatform sets window.device; these are the plugin surfaces
         // the bundle calls into, which the device object does not cover
+        // The official Android client exposes exactly Keyboard, Yanap,
+        // browsertab and screenorientation here. `isemulator` was not one of
+        // them and the bundle never calls it, so it only ever marked this build
+        // as something other than the real client.
+        //
+        // The three that are missing are deliberate: the bundle calls them
+        // behind a presence check and has working fallbacks, so a stub that
+        // answers but does nothing would take audio and orientation down a path
+        // that then fails. Absent beats broken.
         window.cordova = {
             plugins: {
-                isemulator: {
-                    assess: function(fct) {
-                        fct(false);
-                    }
-                },
                 Keyboard: {
                     close: function() {},
                     disableScroll: function() {},
                     show: function() {},
                     hideKeyboardAccessoryBar: function() {}
                 },
+                // Present because the official client has it, and safe to
+                // answer because locking orientation in a desktop window is a
+                // no-op by nature: the calls succeed and nothing depended on
+                // them doing anything. Yanap and browsertab are deliberately
+                // still absent - those two the bundle would actually use, for
+                // audio and for the login tab, and a stub that answers without
+                // working would break both.
+                screenorientation: {
+                    type: "portrait-primary",
+                    angle: 0,
+                    lock: function(orientation, success) { if (success) success(); },
+                    unlock: function(success) { if (success) success(); },
+                    setOrientation: function(orientation, success) { if (success) success(); }
+                },
                 notification: {
                     local: false
-                },
-                pushNotification: {
-                    onDeviceReady: function() {},
-                    setUserId: function() {},
-                    registerDevice: function() {}
                 }
             }
+        };
+
+        // The official client installs these under window.plugins, not under
+        // cordova.plugins, and that is where the bundle looks for them.
+        window.plugins = window.plugins || {};
+        window.plugins.pushNotification = window.plugins.pushNotification || {
+            onDeviceReady: function() {},
+            setUserId: function() {},
+            registerDevice: function() {}
         };
 
         if (window.top.platform == "darwin") {

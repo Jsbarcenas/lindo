@@ -24,7 +24,11 @@ WORKSPACE_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 TIMEOUT="${1:-120}"
 
 RENDERER_LOG="$HOME/Library/Logs/Lindo/renderer-logs-$(date +%F).log"
-[[ "$(uname)" == "Linux" ]] && RENDERER_LOG="$HOME/.config/Lindo/logs/renderer-logs-$(date +%F).log"
+GAME_PATH="$HOME/Library/Application Support/Lindo/game"
+if [[ "$(uname)" == "Linux" ]]; then
+  RENDERER_LOG="$HOME/.config/Lindo/logs/renderer-logs-$(date +%F).log"
+  GAME_PATH="$HOME/.config/Lindo/game"
+fi
 
 RUN_LOG="$(mktemp -t lindo-smoke)"
 trap 'rm -f "$RUN_LOG"' EXIT
@@ -109,6 +113,28 @@ if [[ -z "$renderer_new" ]]; then
 else
   check "el bundle de Dofus ejecuta"   "$renderer_new" "initDofus done"
   check "los mods se inicializan"      "$renderer_new" "init mod"
+fi
+
+# The updater diffs game-base by the version recorded in manifest.json, so
+# editing one of those files without bumping its version means the change is
+# never copied out and simply does not take effect. That failure is invisible:
+# the app runs, the smoke markers pass, and only the behaviour is missing. It
+# went unnoticed once already, for the whole platform-identity work.
+echo "--- game-base desplegado"
+if [[ ! -d "$GAME_PATH" ]]; then
+  printf '  \033[31mFAIL\033[0m no existe %s\n' "$GAME_PATH"
+  fail=1
+else
+  if game_base_out=$(node "$APP_DIR/scripts/check-game-base.mjs" "$GAME_PATH" 2>&1); then
+    printf '  \033[32mOK\033[0m   game-base desplegado coincide con el fuente\n'
+  else
+    printf '  \033[31mFAIL\033[0m game-base desplegado no coincide con el fuente\n'
+    sed 's/^/       /' <<<"$game_base_out"
+    fail=1
+  fi
+
+  check "la identidad de plataforma está enganchada" \
+        "$(cat "$GAME_PATH/index.html" 2>/dev/null)" "installLindoPlatform"
 fi
 
 if [[ $fail -eq 0 ]]; then

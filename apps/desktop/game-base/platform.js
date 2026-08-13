@@ -155,9 +155,18 @@
     })
   }
 
-  var install = function (win, profile) {
+  /**
+   * @param options.inputTraits set false to leave touch, pointer media queries
+   *   and orientation alone. The renderer that hosts the game frame is reachable
+   *   from inside it (`top.navigator`), so it needs the same identity - but it
+   *   is also where the React interface lives, and MUI lays itself out from
+   *   `(pointer: coarse)` and `'ontouchstart' in window`. The device has to
+   *   match; how the surrounding interface responds to a mouse does not.
+   */
+  var install = function (win, profile, options) {
     if (!win || installed.has(win)) return
     installed.add(win)
+    var inputTraits = !(options && options.inputTraits === false)
 
     try {
       patchToString(win)
@@ -166,7 +175,7 @@
       var navigatorProto = win.Navigator && win.Navigator.prototype
       defineGetter(navigatorProto, 'platform', profile.navigatorPlatform)
       defineGetter(navigatorProto, 'vendor', 'Google Inc.')
-      defineGetter(navigatorProto, 'maxTouchPoints', 5)
+      if (inputTraits) defineGetter(navigatorProto, 'maxTouchPoints', 5)
       defineGetter(navigatorProto, 'hardwareConcurrency', profile.cores)
       defineGetter(navigatorProto, 'deviceMemory', profile.memory)
       defineGetter(navigatorProto, 'connection', {
@@ -237,7 +246,11 @@
       // --- Cordova's device plugin, which the bundle prefers over the UA ---
       win.device = {
         available: true,
-        cordova: '12.0.1',
+        // PLATFORM_VERSION_BUILD_LABEL from the cordova.js shipped inside the
+        // store build of com.ankama.dofustouch, not a guess: this is what the
+        // official Android client reports as device.cordova, and it is one of
+        // the seven fields the bundle joins into its device identifier
+        cordova: '14.0.1',
         platform: 'Android',
         version: profile.androidVersion,
         model: profile.model,
@@ -266,7 +279,7 @@
       // --- touch ---
       // an event handler IDL attribute, so it is an own property of window with
       // a null default; `'ontouchstart' in window` is the usual way this is read
-      if (!('ontouchstart' in win)) {
+      if (inputTraits && !('ontouchstart' in win)) {
         try {
           win.ontouchstart = null
         } catch (error) {}
@@ -277,7 +290,7 @@
       // cheapest capability checks there are, and CSS uses them directly, so the
       // wrapper answers only the pointer and hover families and hands every other
       // query to the real implementation.
-      var originalMatchMedia = win.matchMedia
+      var originalMatchMedia = inputTraits && win.matchMedia
       if (originalMatchMedia) {
         var forced = {
           '(pointer: coarse)': true,
@@ -328,11 +341,13 @@
       }
 
       // --- orientation ---
-      defineGetter(win, 'orientation', 0)
-      if (win.screen && win.screen.orientation) {
-        var orientationProto = win.ScreenOrientation ? win.ScreenOrientation.prototype : win.screen.orientation
-        defineGetter(orientationProto, 'type', 'portrait-primary')
-        defineGetter(orientationProto, 'angle', 0)
+      if (inputTraits) {
+        defineGetter(win, 'orientation', 0)
+        if (win.screen && win.screen.orientation) {
+          var orientationProto = win.ScreenOrientation ? win.ScreenOrientation.prototype : win.screen.orientation
+          defineGetter(orientationProto, 'type', 'portrait-primary')
+          defineGetter(orientationProto, 'angle', 0)
+        }
       }
 
       // NOTE: screen.width/height and devicePixelRatio stay untouched. They

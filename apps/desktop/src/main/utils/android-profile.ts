@@ -12,13 +12,12 @@ import { AndroidProfile } from '@lindo/shared'
  *
  * A short curated list is easier to keep coherent: every entry here is a real
  * browser on a real device, and each field below can be checked against the
- * others. Refresh the Chrome versions once a year or so.
+ * others. The browser version is not one of them - see `chromiumVersion`.
  */
 interface DeviceTemplate {
   model: string
   manufacturer: string
   androidVersion: string
-  chromeVersion: string
   screenWidth: number
   screenHeight: number
   devicePixelRatio: number
@@ -28,12 +27,26 @@ interface DeviceTemplate {
   memory: number
 }
 
+/**
+ * The Chromium this build actually runs.
+ *
+ * It used to be a fixed string per device, which put the claimed version and the
+ * engine two years apart: a capture showed the headers saying Chrome 137 while
+ * the engine answered 150.0.7871.212. Anything that works the version out for
+ * itself rather than believing the header - a TLS fingerprint, or just checking
+ * whether an API introduced after 137 exists - sees the real one.
+ *
+ * Claiming the true version costs nothing in plausibility: Chrome ships to
+ * Android and desktop on the same release train, so a phone on this version is
+ * ordinary. It also removes the need to refresh a hardcoded list every year.
+ */
+const chromiumVersion = (): string => process.versions.chrome ?? '138.0.7204.157'
+
 const DEVICES: ReadonlyArray<DeviceTemplate> = [
   {
     model: 'Pixel 8',
     manufacturer: 'Google',
     androidVersion: '15',
-    chromeVersion: '139.0.7258.123',
     screenWidth: 412,
     screenHeight: 915,
     devicePixelRatio: 2.625,
@@ -46,7 +59,6 @@ const DEVICES: ReadonlyArray<DeviceTemplate> = [
     model: 'Pixel 7',
     manufacturer: 'Google',
     androidVersion: '14',
-    chromeVersion: '138.0.7204.157',
     screenWidth: 412,
     screenHeight: 915,
     devicePixelRatio: 2.625,
@@ -59,7 +71,6 @@ const DEVICES: ReadonlyArray<DeviceTemplate> = [
     model: 'SM-S918B',
     manufacturer: 'samsung',
     androidVersion: '14',
-    chromeVersion: '139.0.7258.123',
     screenWidth: 384,
     screenHeight: 824,
     devicePixelRatio: 3.75,
@@ -72,7 +83,6 @@ const DEVICES: ReadonlyArray<DeviceTemplate> = [
     model: 'SM-A546B',
     manufacturer: 'samsung',
     androidVersion: '14',
-    chromeVersion: '137.0.7151.89',
     screenWidth: 360,
     screenHeight: 772,
     devicePixelRatio: 3,
@@ -85,7 +95,6 @@ const DEVICES: ReadonlyArray<DeviceTemplate> = [
     model: '2201123G',
     manufacturer: 'Xiaomi',
     androidVersion: '13',
-    chromeVersion: '138.0.7204.157',
     screenWidth: 393,
     screenHeight: 851,
     devicePixelRatio: 2.75,
@@ -98,7 +107,6 @@ const DEVICES: ReadonlyArray<DeviceTemplate> = [
     model: 'Pixel 6a',
     manufacturer: 'Google',
     androidVersion: '14',
-    chromeVersion: '137.0.7151.89',
     screenWidth: 412,
     screenHeight: 892,
     devicePixelRatio: 2.625,
@@ -114,18 +122,19 @@ const DEVICES: ReadonlyArray<DeviceTemplate> = [
  * never for Pixels. Reproducing that is not worth a branch: the plain form is
  * what current Chrome sends on every device listed above.
  */
-const buildUserAgent = (device: DeviceTemplate): string =>
+const buildUserAgent = (device: DeviceTemplate, chromeVersion: string): string =>
   `Mozilla/5.0 (Linux; Android ${device.androidVersion}; ${device.model}) AppleWebKit/537.36 ` +
-  `(KHTML, like Gecko) Chrome/${device.chromeVersion} Mobile Safari/537.36`
+  `(KHTML, like Gecko) Chrome/${chromeVersion} Mobile Safari/537.36`
 
 export const createAndroidProfile = (): AndroidProfile => {
   const device = DEVICES[crypto.randomInt(0, DEVICES.length)]
+  const chromeVersion = chromiumVersion()
 
   return {
-    userAgent: buildUserAgent(device),
+    userAgent: buildUserAgent(device, chromeVersion),
     androidVersion: device.androidVersion,
-    chromeVersion: device.chromeVersion,
-    chromeMajor: device.chromeVersion.split('.')[0],
+    chromeVersion,
+    chromeMajor: chromeVersion.split('.')[0],
     model: device.model,
     manufacturer: device.manufacturer,
     // every Android build since Nougat reports this exact string, including on
@@ -138,6 +147,27 @@ export const createAndroidProfile = (): AndroidProfile => {
     glRenderer: device.glRenderer,
     cores: device.cores,
     memory: device.memory
+  }
+}
+
+/**
+ * Brings a stored profile's browser version back in line with the engine.
+ *
+ * The device is deliberately kept for months, but the browser on it is not: an
+ * Electron upgrade moves the engine while the stored profile keeps claiming the
+ * old version, which is the same contradiction this was meant to remove. The
+ * device identity survives, only the browser version moves - which is exactly
+ * what a phone does when Chrome updates.
+ */
+export const withCurrentChromeVersion = (profile: AndroidProfile): AndroidProfile => {
+  const chromeVersion = chromiumVersion()
+  if (profile.chromeVersion === chromeVersion) return profile
+
+  return {
+    ...profile,
+    chromeVersion,
+    chromeMajor: chromeVersion.split('.')[0],
+    userAgent: profile.userAgent.replace(/Chrome\/[\d.]+/, `Chrome/${chromeVersion}`)
   }
 }
 
