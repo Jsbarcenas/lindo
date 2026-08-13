@@ -11,15 +11,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "@lindo/host-web": "workspace:*",
+    "@lindo/shared": "workspace:*",
+    "@lindo/ui": "workspace:*",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-router-dom": "6"
   },
   "devDependencies": {
     "@lindo/typescript-config": "workspace:*",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^5.2.0",
     "js-beautify": "^1.15.4",
+    "sass": "^1.102.0",
     "typescript": "^5.9.3",
     "vite": "^8.2.1"
   }

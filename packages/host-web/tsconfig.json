@@ -1,0 +1,11 @@
+{
+  "extends": "@lindo/typescript-config/react-app.json",
+  "compilerOptions": {
+    // this package IS the browser host, so unlike the others it needs the DOM
+    // lib surface that goes beyond what react-app.json assumes: IndexedDB,
+    // BroadcastChannel, Web Crypto and the service worker registration
+    "types": [],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  },
+  "include": ["**/*.ts"]
+}

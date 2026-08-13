@@ -82,6 +82,44 @@ De ahí salen `dataUrl` (el mismo host, donde vive `/primus`), `assetsUrl` y
 
 ---
 
+## Fase 1 · `packages/host-web` — **hecha**
+
+Los 39 miembros implementados en [`packages/host-web`](../../packages/host-web).
+Decisiones que conviene conocer:
+
+- **El host mantiene su propio `rootStore`**, igual que hacía el proceso main:
+  aplica cada patch, lo persiste y lo reparte. Así `client-store` sigue sin
+  tocarse, con su deduplicación por hash incluida.
+- **`BroadcastChannel` sustituye al relé IPC** y encaja mejor: sincroniza
+  pestañas y popups sin proceso central. Los atajos de pestaña necesitan además
+  `publishLocal`, porque un BroadcastChannel no hace eco al emisor y en Electron
+  la ventana sí reaccionaba a su propia tecla.
+- **La ventana de opciones es un `window.open` real**, no una ruta. Cambiar de
+  ruta desmontaría `MainScreen` y se llevaría por delante la iframe del juego.
+- **PBKDF2 en lugar de argon2**, nativo y sin dependencias. Y **sin `safeStorage`**:
+  lo guardado en IndexedDB lo protege solo la contraseña maestra.
+- **Los retratos de multicuenta** van a IndexedDB y los sirve un service worker
+  en `/character-images/`, que es la URL que `CharacterCard` construye — así
+  `packages/ui` no se toca.
+- **`openWebAuth` devuelve un error explicativo.** No es reproducible.
+
+## Fase 3 · La cáscara React — **hecha**
+
+`apps/lindo-web` monta `@lindo/ui` de verdad con `HashRouter`.
+
+**React bajado de 19 a 18**: `@lindo/ui` usa MUI 5.8.6, que no soporta React 19.
+La alternativa era migrar MUI en todo `packages/ui`, mucho más arriesgado y sin
+relación con este objetivo.
+
+Verificado el 2026-08-13: la app arranca, la barra lateral y las pestañas
+renderizan, el juego carga dentro y el pie muestra `Client v3.14.0/Build v1.73.8`.
+
+Queda un error de consola benigno del propio bundle de Ankama
+(`Could not validate version undefined`), de su comprobación de versiones de SO
+obsoletas: devuelve `false`, que es el resultado que interesa.
+
+### Detalle original
+
 ## Fase 1 · `packages/host-web`
 
 Implementar `LindoAPI` sobre primitivas de navegador. Miembro a miembro:
