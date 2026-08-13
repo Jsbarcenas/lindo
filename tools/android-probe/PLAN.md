@@ -149,28 +149,36 @@ ordenar. JA4 sí es estable — idéntico en las 20+ capturas del mismo cliente.
 
 | Cliente | JA4 |
 |---|---|
-| Chrome 149 / Android (emulador) | `t13i1515h2_8daaf6152771_d8a2da3f94cd` |
-| Chromium 150 / Electron (Lindo) | `t13i1515h2_8daaf6152771_806a8c22fdea` |
+| Chrome **149** / Android | `t13i1515h2_8daaf6152771_d8a2da3f94cd` |
+| **WebView 150** / Android | `t13i1515h2_8daaf6152771_806a8c22fdea` |
+| Chromium **150** / Electron (Lindo) | `t13i1515h2_8daaf6152771_806a8c22fdea` |
 
-Los dos primeros tercios **coinciden**: misma versión TLS, 15 ciphers, 15
-extensiones, mismo ALPN y el mismo hash de cifrados. Conjunto de extensiones y
-curvas, idénticos también.
+**El WebView de Android y el Electron de Lindo dan la misma huella, exacta.**
 
-La única diferencia son los **algoritmos de firma**: Electron manda tres extra
-al principio (`0x0904`, `0x0905`, `0x0906`) que Chrome 149 no manda.
+La diferencia que aparecía contra Chrome 149 —tres algoritmos de firma extra al
+principio, `0x0904`, `0x0905`, `0x0906`— era **de versión, no de plataforma**:
+Chromium 150 los manda en las dos, y Chrome 149 en ninguna. Importa que sea el
+WebView y no Chrome porque el cliente real de Dofus Touch es una app Cordova, o
+sea un WebView.
 
-**Lo que esto no resuelve.** La captura de Android es de Chrome **149** y
-Electron es Chromium **150**, así que el delta puede ser de versión y no de
-plataforma. Importa porque el cliente real de Dofus Touch no corre sobre Chrome
-sino sobre el **WebView**, que en ese emulador está en 150.0.7871.124 — la misma
-línea que Electron. Para cerrarlo hace falta una captura del WebView 150 sobre
-Android, y el emulador no trae ninguna app que lo permita.
+Conclusión: **en la capa TLS este cliente es indistinguible del oficial** cuando
+corren la misma línea de Chromium. No hay nada que arreglar aquí, y sería inútil
+intentarlo — no se puede parecer más que "idéntico".
 
-**Lo que sí resuelve.** El cliente declara Chrome 150 en el User-Agent y en los
-client hints desde que la versión se deriva de `process.versions.chrome`, y su
-pila TLS *es* Chromium 150. Antes declaraba 137 mientras la huella decía 150, que
-era una contradicción real y comprobada. Esa parte está cerrada, dependa de
-versión o de plataforma el resto.
+Lo que sí hay que vigilar es la **deriva de versión**. Si Electron se queda atrás
+o se adelanta respecto al WebView que Google despliega, la huella se separa sola.
+Eso ya no es una incoherencia interna que se pueda corregir en el cliente, es una
+consecuencia de qué Chromium empaqueta Electron.
+
+Reproducir la captura del WebView: `tools/android-probe/webview-capture.sh`,
+que construye e instala un APK mínimo (una sola actividad con un WebView) usando
+solo el SDK de Android.
+
+#### Nota sobre JA3
+
+31 capturas del mismo Chrome dieron **31 JA3 distintos** y **un solo JA4**. No
+usar JA3 para nada aquí: Chrome baraja el orden de extensiones desde la v110 y
+JA3 las hashea sin ordenar, así que cambia en cada conexión.
 
 **Aceptación fase 1:** cada evaluador tiene un test unitario con una entrada
 sintética de Android real (PASS) y una de Chrome/macOS (FAIL).
