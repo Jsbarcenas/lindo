@@ -49,7 +49,6 @@ export const DOFUS_EARLY_ORIGIN = 'https://earlyproxy.touch.dofus.com/'
 export const OFFICIAL_WEBSITE_URL = 'https://github.com/Jsbarcenas/lindo'
 export const GITHUB_URL = 'https://github.com/Jsbarcenas/lindo'
 
-
 export interface SaveCharacterImageArgs {
   image: string
   name: string

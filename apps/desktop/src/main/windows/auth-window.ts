@@ -94,4 +94,3 @@ export const openWebAuthWindow = (authUrl: string, parent: BrowserWindow | null)
     })
   })
 }
-
