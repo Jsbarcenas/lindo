@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "build": "expo export --output-dir dist",
+    "build:android": "node scripts/build-apk.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
