@@ -1,0 +1,547 @@
+{
+  "at": "2026-08-13T13:07:53.258Z",
+  "trusted": false,
+  "context": {
+    "href": "http://10.0.2.2:8420/probe",
+    "isGameFrame": false,
+    "hasInstaller": false,
+    "isTopFrame": true
+  },
+  "totals": {
+    "pass": 15,
+    "fail": 12,
+    "missing": 12,
+    "error": 0
+  },
+  "results": [
+    {
+      "id": "http.ua",
+      "layer": "http",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.7871.124 Mobile Safari/537.36",
+      "expected": "Chrome on Android User-Agent",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.platform",
+      "layer": "http",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "\"Android\"",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.mobile",
+      "layer": "http",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "?1",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.brands",
+      "layer": "http",
+      "family": "M",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "brand list including a GREASE entry",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.highentropy",
+      "layer": "http",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "sec-ch-ua-model=- sec-ch-ua-platform-version=- sec-ch-ua-arch=- sec-ch-ua-bitness=-",
+      "expected": "sec-ch-ua-model, sec-ch-ua-platform-version, sec-ch-ua-arch, sec-ch-ua-bitness",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.arch",
+      "layer": "http",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": "arch=- bitness=-",
+      "expected": "arm / 64",
+      "fixable": "client"
+    },
+    {
+      "id": "http.sec.fetch",
+      "layer": "http",
+      "family": "M",
+      "verdict": "FAIL",
+      "observed": "",
+      "expected": "all three present",
+      "fixable": "client"
+    },
+    {
+      "id": "http.header.order",
+      "layer": "http",
+      "family": "M",
+      "verdict": "FAIL",
+      "observed": "host,connection,content-length,user-agent,content-type,accept,origin,x-requested-with,referer,accept-encoding,accept-language",
+      "expected": "sec-ch-ua before user-agent",
+      "fixable": "network"
+    },
+    {
+      "id": "http.accept.lang",
+      "layer": "http",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": "en-US,en;q=0.9",
+      "expected": "present",
+      "fixable": "client"
+    },
+    {
+      "id": "js.uad.platform",
+      "layer": "js",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "Android",
+      "fixable": "client"
+    },
+    {
+      "id": "js.uad.highentropy",
+      "layer": "js",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "Android + model + version",
+      "fixable": "client"
+    },
+    {
+      "id": "js.platform",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "Linux aarch64",
+      "expected": "Linux armv8l",
+      "fixable": "client"
+    },
+    {
+      "id": "js.vendor",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "Google Inc.",
+      "expected": "Google Inc.",
+      "fixable": "client"
+    },
+    {
+      "id": "js.touch",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "maxTouchPoints=5 ontouchstart=true TouchEvent=true",
+      "expected": "touch capable",
+      "fixable": "client"
+    },
+    {
+      "id": "js.plugins",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": 0,
+      "expected": "0 (Android Chrome ships none)",
+      "fixable": "client"
+    },
+    {
+      "id": "js.webdriver",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": false,
+      "expected": "false",
+      "fixable": "client"
+    },
+    {
+      "id": "js.device",
+      "layer": "js",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "Cordova device carrying cordova, isVirtual, model, platform, version, uuid, serial",
+      "fixable": "client"
+    },
+    {
+      "id": "js.device.identifier",
+      "layer": "js",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "a populated identifier",
+      "fixable": "client"
+    },
+    {
+      "id": "js.cordova.plugins",
+      "layer": "js",
+      "family": "D",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "Keyboard, Yanap, browsertab, screenorientation",
+      "fixable": "client"
+    },
+    {
+      "id": "js.cordova.globals",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "2/20 present, missing: StatusBar,requestFileSystem,DirectoryEntry,AppSettings,MobileAccessibilityNotifications",
+      "expected": "every global the official client installs",
+      "fixable": "client"
+    },
+    {
+      "id": "js.webgl",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "gl1=Android Emulator OpenGL ES Translator (Apple M4 Max) gl2=Android Emulator OpenGL ES Translator (Apple M4 Max)",
+      "expected": "mobile GPU in both",
+      "fixable": "client"
+    },
+    {
+      "id": "js.webgpu",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": null,
+      "expected": "absent or mobile vendor",
+      "fixable": "client"
+    },
+    {
+      "id": "js.voices",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "no macOS voices",
+      "fixable": "client"
+    },
+    {
+      "id": "js.fonts",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "no macOS-only fonts",
+      "fixable": "client"
+    },
+    {
+      "id": "js.mq",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "coarse=true hoverNone=true",
+      "expected": "coarse pointer, no hover",
+      "fixable": "client"
+    },
+    {
+      "id": "js.perfmemory",
+      "layer": "js",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": true,
+      "expected": "present, as on any Chromium",
+      "fixable": "no"
+    },
+    {
+      "id": "m.descriptor.navigator",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "no own properties on navigator",
+      "fixable": "client"
+    },
+    {
+      "id": "m.tostring.getparameter",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "function getParameter() { [native code] }",
+      "expected": "[native code]",
+      "fixable": "client"
+    },
+    {
+      "id": "m.tostring.generic",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "every patched builtin reports native code",
+      "fixable": "client"
+    },
+    {
+      "id": "m.uad.class",
+      "layer": "js",
+      "family": "M",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "[object NavigatorUAData]",
+      "fixable": "client"
+    },
+    {
+      "id": "m.iframe.escape",
+      "layer": "js",
+      "family": "M",
+      "verdict": "FAIL",
+      "observed": "Linux aarch64",
+      "expected": "Linux armv8l inside a new iframe",
+      "fixable": "client"
+    },
+    {
+      "id": "m.parent.escape",
+      "layer": "js",
+      "family": "M",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "run inside the game frame to have a parent to read",
+      "fixable": "client"
+    },
+    {
+      "id": "m.worker.escape",
+      "layer": "js",
+      "family": "M",
+      "verdict": "FAIL",
+      "observed": "Linux aarch64",
+      "expected": "Linux armv8l inside a worker",
+      "fixable": "client"
+    },
+    {
+      "id": "m.stack",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "Error: probe\n    at http://10.0.2.2:8420/probe.js:236:46\n    at safe (http://10.0.2.2:8420/probe.js:36:19)\n    at collect (http://10.0.2.2:8420/probe.js:236:20)",
+      "expected": "no host paths in stack traces",
+      "fixable": "no"
+    },
+    {
+      "id": "c.chrome.version",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": "unparseable",
+      "expected": "same major everywhere",
+      "fixable": "client"
+    },
+    {
+      "id": "c.model",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "one model everywhere",
+      "fixable": "client"
+    },
+    {
+      "id": "c.android.version",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "MISSING",
+      "observed": null,
+      "expected": "one Android major everywhere",
+      "fixable": "client"
+    },
+    {
+      "id": "c.gpu.model",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": "Android Emulator OpenGL ES Translator (Apple M4 Max)",
+      "expected": "GPU matching the model",
+      "fixable": "client"
+    },
+    {
+      "id": "c.ua.vs.js",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": "Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.7871.124 Mobile Safari/537.36 | Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.7871.124 Mobile Safari/537.36",
+      "expected": "header and navigator agree",
+      "fixable": "client"
+    }
+  ],
+  "capture": {
+    "http": {
+      "headers": [
+        [
+          "Host",
+          "10.0.2.2:8420"
+        ],
+        [
+          "Connection",
+          "keep-alive"
+        ],
+        [
+          "Content-Length",
+          "1926"
+        ],
+        [
+          "User-Agent",
+          "Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.7871.124 Mobile Safari/537.36"
+        ],
+        [
+          "Content-Type",
+          "text/plain"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "Origin",
+          "http://10.0.2.2:8420"
+        ],
+        [
+          "X-Requested-With",
+          "lindo.probe"
+        ],
+        [
+          "Referer",
+          "http://10.0.2.2:8420/probe"
+        ],
+        [
+          "Accept-Encoding",
+          "gzip, deflate"
+        ],
+        [
+          "Accept-Language",
+          "en-US,en;q=0.9"
+        ]
+      ],
+      "httpVersion": "1.1"
+    },
+    "warmUp": {
+      "headers": [
+        [
+          "Host",
+          "10.0.2.2:8420"
+        ],
+        [
+          "Connection",
+          "keep-alive"
+        ],
+        [
+          "User-Agent",
+          "Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.7871.124 Mobile Safari/537.36"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "X-Requested-With",
+          "lindo.probe"
+        ],
+        [
+          "Referer",
+          "http://10.0.2.2:8420/probe"
+        ],
+        [
+          "Accept-Encoding",
+          "gzip, deflate"
+        ],
+        [
+          "Accept-Language",
+          "en-US,en;q=0.9"
+        ]
+      ],
+      "httpVersion": "1.1"
+    },
+    "js": {
+      "sid": "1786626472334-chp3xa",
+      "context": {
+        "href": "http://10.0.2.2:8420/probe",
+        "isGameFrame": false,
+        "hasInstaller": false,
+        "isTopFrame": true
+      },
+      "userAgent": "Mozilla/5.0 (Linux; Android 15; sdk_gphone64_arm64 Build/AE3A.240806.036; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/150.0.7871.124 Mobile Safari/537.36",
+      "platform": "Linux aarch64",
+      "vendor": "Google Inc.",
+      "languages": [
+        "en-US"
+      ],
+      "maxTouchPoints": 5,
+      "hardwareConcurrency": 1,
+      "deviceMemory": null,
+      "webdriver": false,
+      "pluginCount": 0,
+      "mimeTypeCount": 0,
+      "uaData": null,
+      "uaDataTag": null,
+      "device": null,
+      "cordovaPlugins": null,
+      "windowPlugins": null,
+      "cordovaGlobals": {
+        "expected": [
+          "StatusBar",
+          "MobileAccessibility",
+          "powerManagement",
+          "wizAssets",
+          "requestFileSystem",
+          "Media",
+          "File",
+          "FileReader",
+          "DirectoryEntry",
+          "store",
+          "Adjust",
+          "AdjustConfig",
+          "IonicDeeplink",
+          "AppSettings",
+          "Connection",
+          "LaunchReview",
+          "appAvailability",
+          "gamecenter",
+          "navigationbar",
+          "MobileAccessibilityNotifications"
+        ],
+        "present": [
+          "File",
+          "FileReader"
+        ]
+      },
+      "webgl1": {
+        "vendor": "Google (Apple)",
+        "renderer": "Android Emulator OpenGL ES Translator (Apple M4 Max)"
+      },
+      "webgl2": {
+        "vendor": "Google (Apple)",
+        "renderer": "Android Emulator OpenGL ES Translator (Apple M4 Max)"
+      },
+      "screen": {
+        "width": 412,
+        "height": 915,
+        "availWidth": 412,
+        "availHeight": 915,
+        "colorDepth": 24,
+        "dpr": 2.625,
+        "orientation": "portrait-primary",
+        "windowOrientation": 0
+      },
+      "hasOnTouchStart": true,
+      "hasTouchEvent": true,
+      "pointerCoarse": true,
+      "hoverNone": true,
+      "hasPerformanceMemory": true,
+      "hasBattery": false,
+      "timeZone": "America/Bogota",
+      "voices": [],
+      "fonts": [],
+      "ownNavigatorProps": [],
+      "getParameterSource": "function getParameter() { [native code] }",
+      "nonNativeFunctions": [],
+      "iframePlatform": "Linux aarch64",
+      "parentPlatform": null,
+      "stackSample": "Error: probe\n    at http://10.0.2.2:8420/probe.js:236:46\n    at safe (http://10.0.2.2:8420/probe.js:36:19)\n    at collect (http://10.0.2.2:8420/probe.js:236:20)",
+      "uaDataHighEntropy": null,
+      "gpuAdapter": null,
+      "workerPlatform": "Linux aarch64"
+    }
+  }
+}

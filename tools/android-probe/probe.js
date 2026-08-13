@@ -14,7 +14,21 @@
  * the report, and "this threw" is itself an observation worth keeping.
  */
 ;(function () {
-  var ORIGIN = 'http://127.0.0.1:8420'
+  /**
+   * Where to report back, taken from wherever this script was loaded.
+   *
+   * A constant works right up until the probe runs somewhere that is not the
+   * host: inside the Android emulator, `127.0.0.1` is the emulator, and the
+   * report goes nowhere. The script's own URL is the one address known to be
+   * reachable from the context being audited, whatever that context is.
+   */
+  var ORIGIN = (function () {
+    try {
+      var src = document.currentScript && document.currentScript.src
+      if (src) return new URL(src).origin
+    } catch (error) {}
+    return 'http://127.0.0.1:8420'
+  })()
   var sid = String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8)
 
   var safe = function (fn, fallback) {

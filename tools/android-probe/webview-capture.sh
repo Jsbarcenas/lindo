@@ -45,7 +45,9 @@ cat > "$WORK/AndroidManifest.xml" <<'XML'
     package="lindo.probe">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
-    <application android:label="Lindo TLS probe">
+    <!-- the JS probe reports over plain http to the host; TLS captures do not
+         need this, and Android 9+ blocks cleartext without it -->
+    <application android:label="Lindo TLS probe" android:usesCleartextTraffic="true">
         <activity android:name=".Main" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
