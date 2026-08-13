@@ -189,6 +189,17 @@
         ANNOUNCEMENT: 'announcement', SCREEN_CHANGED: 'screenChanged'
       },
       LocalFileSystem: { TEMPORARY: 0, PERSISTENT: 1 },
+      // the cordova-plugin-file surface. All at zero references, and the guard
+      // below skips the ones the engine already provides natively
+      requestFileSystem: function requestFileSystem(type, size, success, fail) {
+        if (typeof fail === 'function') fail({ code: 5 })
+      },
+      DirectoryEntry: function DirectoryEntry() {},
+      DirectoryReader: function DirectoryReader() {},
+      Entry: function Entry() {},
+      FileEntry: function FileEntry() {},
+      FileSystem: function FileSystem() {},
+      FileWriter: function FileWriter() {},
       Flags: function Flags() {},
       Metadata: function Metadata() {},
       FileUploadOptions: function FileUploadOptions() {},

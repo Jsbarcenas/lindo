@@ -113,10 +113,12 @@
                     lock: function(orientation, success) { if (success) success(); },
                     unlock: function(success) { if (success) success(); },
                     setOrientation: function(orientation, success) { if (success) success(); }
-                },
-                notification: {
-                    local: false
                 }
+                // `notification` used to sit here. The official client has no
+                // such plugin and the bundle never reads
+                // cordova.plugins.notification - the word appears 24 times, but
+                // as navigator.notification and in unrelated code - so all it
+                // did was advertise a plugin no real client ships.
             }
         };
 

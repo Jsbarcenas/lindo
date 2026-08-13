@@ -64,10 +64,38 @@ for (const [key, entry] of Object.entries(manifest.files)) {
   }
 }
 
-if (!stale.length && !absent.length) {
+/**
+ * Every global platform.js installs must be one the bundle never mentions.
+ *
+ * That rule has been broken twice by hand - once with `store`, which has 86
+ * references and threw on its first chained call, and once with
+ * `WizAssetsError`, which was confused with a name that really is unused. Both
+ * were caught after the fact. Checking it here means the next one is caught
+ * before the game is opened.
+ */
+const checkInstalledGlobals = () => {
+  const platformPath = path.join(GAME_BASE, 'platform.js')
+  const bundlePath = path.join(gamePath, 'build', 'script.js')
+  if (!fs.existsSync(platformPath) || !fs.existsSync(bundlePath)) return []
+
+  const surface = /var surface = \{([\s\S]*?)\n {4}\}\n/.exec(fs.readFileSync(platformPath, 'utf8'))
+  if (!surface) return ['could not find the surface table in platform.js']
+
+  const names = [...surface[1].matchAll(/^ {6}(\w+):/gm)].map((match) => match[1])
+  const bundle = fs.readFileSync(bundlePath, 'utf8')
+  return names
+    .filter((name) => new RegExp(`\\b${name}\\b`).test(bundle))
+    .map((name) => `platform.js installs "${name}", which the bundle references - a stub can send it down a path that then fails`)
+}
+
+const globalProblems = checkInstalledGlobals()
+
+if (!stale.length && !absent.length && !globalProblems.length) {
   console.log(`check-game-base: OK - ${Object.keys(manifest.files).length} files match what is deployed`)
   process.exit(0)
 }
+
+for (const problem of globalProblems) console.error(`check-game-base: ${problem}`)
 
 for (const name of absent) console.error(`check-game-base: never deployed: ${name}`)
 for (const name of stale) console.error(`check-game-base: deployed copy differs from source: ${name}`)
