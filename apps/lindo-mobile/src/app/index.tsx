@@ -62,6 +62,15 @@ export default function Index() {
 
   const game = useRef<WebView>(null)
   const [authUrl, setAuthUrl] = useState<string | undefined>()
+  /**
+   * El `redirect_uri` de esta autorización, sacado de la propia URL.
+   *
+   * Sin él, cualquier URL con un `code=` parecía la vuelta del login: se
+   * capturaba basura y se abortaba el formulario de Ankama a media carga
+   * (`ERR_ABORTED` sobre `/login/ankama/form`). El destino real viene escrito en
+   * la petición de autorización, así que no hay que adivinarlo.
+   */
+  const [authRedirect, setAuthRedirect] = useState<string | undefined>()
   const [loading, setLoading] = useState(true)
   /**
    * De dónde se carga el cliente, resuelto al arrancar.
@@ -141,28 +150,41 @@ export default function Index() {
   )
 
   /**
-   * El login, en un WebView nuestro en vez de en una pestaña que no podemos
-   * leer.
+   * Recoge el `code` **sin dejar que la página del redirect llegue a cargarse**.
    *
-   * Es la diferencia entera con la versión web: allí el `code` aterriza en un
-   * dominio de Ankama y hay que copiarlo a mano porque el origen no puede leer
-   * la URL de otra pestaña. Aquí la ventana es nuestra, así que cada navegación
-   * pasa por `onNavigationStateChange` y el `code` se recoge solo.
+   * Esa URL es el endpoint registrado de Ankama, y pedirla hace que su servidor
+   * **consuma el código**: cuando el cliente iba después a canjearlo, `/token`
+   * contestaba 403 `AnkamaAuthorizationNotFound`. En el navegador no se nota
+   * porque allí esa misma página responde "Forbidden" y no lo gasta; aquí, con
+   * el User-Agent que presentamos, sí lo procesa.
+   *
+   * Interceptando en `onShouldStartLoadWithRequest` la petición no llega a
+   * salir: se saca el código de la URL y se devuelve `false`. Y esta es también
+   * la diferencia entera con la versión web, donde el `code` aterriza en un
+   * dominio que aquel origen no puede leer y hay que copiarlo a mano.
    */
-  const onAuthNavigation = useCallback(
-    (event: WebViewNavigation) => {
-      // Google puede llevar el rechazo en la propia URL, sin llegar a pintar la
-      // página; el sondeo inyectado solo corre cuando una carga termina
-      if (/disallowed_useragent/i.test(event.url)) {
-        setAuthIdentity((current) => (current === 'client' && deviceUserAgent ? 'browser' : current))
-        return
-      }
-      const code = codeFrom(event.url)
-      const error = errorFrom(event.url)
-      if (!code && !error) return
+  const onAuthRequest = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      // solo el destino declarado en la autorización cuenta como la vuelta
+      if (!authRedirect || !request.url.startsWith(authRedirect)) return true
+
+      const code = codeFrom(request.url)
+      const error = errorFrom(request.url)
+      if (!code && !error) return true
+
       setAuthUrl(undefined)
       setAuthIdentity('client')
       game.current?.injectJavaScript(resolveAuth(code ? { code } : { error }))
+      return false
+    },
+    [authRedirect]
+  )
+
+  /** el rechazo de Google puede venir en la propia URL, sin llegar a pintarse */
+  const onAuthNavigation = useCallback(
+    (event: WebViewNavigation) => {
+      if (!/disallowed_useragent/i.test(event.url)) return
+      setAuthIdentity((current) => (current === 'client' && deviceUserAgent ? 'browser' : current))
     },
     [deviceUserAgent]
   )
@@ -202,6 +224,11 @@ export default function Index() {
             if (message?.type === 'ua') setDeviceUserAgent(message.value)
             if (message?.type === 'auth:open') {
               setAuthIdentity('client')
+              try {
+                setAuthRedirect(new URL(message.url).searchParams.get('redirect_uri') ?? undefined)
+              } catch {
+                setAuthRedirect(undefined)
+              }
               setAuthUrl(message.url)
             }
           }}
@@ -254,6 +281,7 @@ export default function Index() {
               // dentro de un WebView que se declare como tal. Si aun así lo
               // rechaza, `onAuthMessage` cambia a la del aparato.
               userAgent={authUserAgent}
+              onShouldStartLoadWithRequest={onAuthRequest}
               onNavigationStateChange={onAuthNavigation}
               injectedJavaScript={authBlockedProbe}
               onMessage={(event) => onAuthMessage(event.nativeEvent.data)}
