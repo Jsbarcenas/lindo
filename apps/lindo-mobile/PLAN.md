@@ -10,8 +10,54 @@ No es menos trabajo. Es otro trabajo, y esta vez sí se puede ganar del todo,
 porque las cabeceras HTTP —lo único que la versión web no puede tocar— aquí las
 emite un Android de verdad.
 
-Estado de partida: `apps/lindo-mobile` es un andamio de Expo SDK 57 con
-expo-router y una pantalla que dice "Lindo Mobile". Nada más.
+Estado de partida: `apps/lindo-mobile` era un andamio de Expo SDK 57 con
+expo-router y una pantalla que decía "Lindo Mobile". Nada más.
+
+---
+
+## Estado: ejecutado el 2026-08-13
+
+Las seis fases están hechas y medidas contra el emulador. El cliente arranca
+dentro de la app, se actualiza solo, y el login llega hasta Google sin que
+Google lo rechace.
+
+| Fase | Estado | Lo que salió |
+|---|---|---|
+| 0 · Reconocimiento | hecha | Un WebView pelado saca 15/39. El APK dio el UA real y la lista de plugins. |
+| 1 · Cáscara | hecha | Carga, con guardián de navegación y pantalla completa. |
+| 2 · Cordova real | hecha | `window.device` sale de `expo-device`. |
+| 3 · Identidad | hecha | `nativeAndroid` en `platform.js`. |
+| 4 · Login | hecha, por 4.2 | WebView propio con el UA de iPhone del APK. |
+| 5 · Verificación | hecha | 28/40, y el catálogo salió tocado. |
+| 6 · Empaquetado | hecha para local | Debug + Metro sobre `adb reverse`. |
+
+### Cómo se levanta
+
+El WebView carga `http://localhost:5173`, y `localhost` no es un rodeo: es un
+**origen seguro**, que es la restricción dura de más abajo. `10.0.2.2` no lo es.
+
+```bash
+adb reverse tcp:5173 tcp:5173 && adb reverse tcp:8081 tcp:8081
+```
+
+```bash
+pnpm --filter lindo-web dev
+```
+
+```bash
+cd apps/lindo-mobile && ANDROID_HOME=$HOME/Library/Android/sdk npx expo run:android
+```
+
+Va en **variante debug** a propósito: Android permite cleartext en debug y lo
+prohíbe en release, que es exactamente el reparto que queremos - local por
+`http://localhost`, desplegado por `https://`. Para apuntar al despliegue basta
+`EXPO_PUBLIC_LINDO_URL=https://…` y ahí sí vale release.
+
+Para mirar dentro del WebView, DevTools remoto:
+
+```bash
+adb forward tcp:9222 localabstract:$(adb shell cat /proc/net/unix | grep -o 'webview_devtools_remote_[0-9]*' | head -1)
+```
 
 ---
 
@@ -22,7 +68,7 @@ El puerto a web dejó tres enganches que sirven igual aquí, sin tocarlos:
 | Enganche | Dónde | Para qué sirve en Expo |
 |---|---|---|
 | `window.lindoOpenWebAuth` | `GameScreen.tsx`, parche 15 de `regex.json` | El puente de login. En Expo lo atiende el lado nativo. |
-| `window.lindoBrowserAuth` | `game-base/index.html` | Elige rama del login. En Expo va a **`false`** → `deepLink`, como el cliente real. |
+| `window.lindoBrowserAuth` | `game-base/index.html` | Elige rama del login. En Expo se queda en **`true`** → `browserLink`: ver Fase 4, se cerró por la ruta 4.2. |
 | `packages/host-web` | 39 miembros de `LindoAPI` | Corre **tal cual** dentro del WebView. No se reescribe nada. |
 
 Y una pieza que aquí deja de hacer falta como estaba: `game-base/platform.js`.
@@ -61,11 +107,17 @@ Dos ajustes que necesitó el instrumento y ya están hechos:
   cableado; desde el emulador, `127.0.0.1` es el emulador.
 - El APK de captura declara `usesCleartextTraffic`.
 
-> **Provisional, no concluyas de aquí:** esa corrida fue sobre `http://` en claro,
-> y `navigator.userAgentData`, los client hints y parte de `Sec-Fetch-*` **no se
-> emiten fuera de contexto seguro**. Por eso salen 12 `MISSING`. Antes de sacar
-> ninguna conclusión sobre client hints hay que repetirla sobre `https://`
-> (`tls-probe.mjs` ya levanta un listener en 8443 con certificado).
+> **Esto era provisional y ya está resuelto — y no como yo suponía.** Escribí que
+> los 12 `MISSING` salían de medir sobre `http://` en claro, fuera de contexto
+> seguro. Medido después dentro de la app: `isSecureContext` es **`true`**
+> (`http://localhost` cuenta como origen de confianza) y aun así
+> `navigator.userAgentData` **no existe**.
+>
+> Es decir: **el WebView de Android no implementa los UA Client Hints**, ni la
+> API ni las cabeceras. Dos capturas independientes, en Chrome 109 y en Chrome
+> 150 de WebView, coinciden. Y como el cliente real *es* un WebView, tampoco los
+> manda él. Las señales `http.ch.*` y `js.uad.*` describen Chrome-en-Android, no
+> al cliente que imitamos — el mismo error que el UA, en otra capa.
 
 ### 0.2 · El APK real, leído de verdad
 
@@ -162,7 +214,7 @@ Dentro de A, de dónde sale la web:
 
 ---
 
-## Fase 1 · La cáscara
+## Fase 1 · La cáscara — **hecha**
 
 ```bash
 npx expo install react-native-webview expo-screen-orientation expo-keep-awake
@@ -194,7 +246,7 @@ y se ve la pantalla de login. Sin entrar todavía.
 
 ---
 
-## Fase 2 · La superficie Cordova, esta vez verdadera
+## Fase 2 · La superficie Cordova, esta vez verdadera — **hecha**
 
 Hoy `game-base/index.html` inventa `window.device` desde un perfil sintético.
 Dentro de la app eso es innecesario y peor: hay una fuente real.
@@ -220,7 +272,7 @@ valores del hardware real, y `window.device.model` coincidiendo con el UA.
 
 ---
 
-## Fase 3 · Identidad: qué apagar y qué encender
+## Fase 3 · Identidad: qué apagar y qué encender — **hecha**
 
 Aquí es donde el plan se invierte. Sobre Android real, `platform.js` **estorba**:
 reemplazaría valores auténticos por los de un SM-A546B inventado, y ese perfil
@@ -249,7 +301,7 @@ FAIL y ninguna señal `D` inventada donde había una real.
 
 ---
 
-## Fase 4 · El login, que aquí sí se puede cerrar
+## Fase 4 · El login, que aquí sí se puede cerrar — **hecha, por la ruta 4.2**
 
 El premio gordo. En web el `code` aterriza en un dominio de Ankama que no podemos
 leer, y por eso hay que copiar la URL. **En la app no.** Dos rutas, en este orden:
@@ -271,51 +323,82 @@ pone su ventana.
   juego instalado al lado, Android muestra un selector. En un dispositivo limpio,
   no.
 
-**4.2 · Si 4.1 estorba: WebView de login propio.** Abrir el login en un segundo
-WebView nuestro en vez de en Custom Tabs. `onNavigationStateChange` **ve la URL de
-cada navegación**, incluida `dt-proxy-…/?code=`. Sin esquema, sin conflicto, sin
-portapapeles. A verificar: que el `challenge.js` de Ankama no rechace un WebView —
-ya sabemos que rechaza una iframe.
+**4.2 · WebView de login propio — es la que se implementó.** Abrir el login en un
+segundo WebView nuestro en vez de en Custom Tabs. `onNavigationStateChange` **ve
+la URL de cada navegación**, incluida `dt-proxy-…/?code=`. Sin esquema, sin
+conflicto con el juego oficial, sin portapapeles. `lindoBrowserAuth` se queda en
+`true` y el parche sigue pidiendo `browserLink`, igual que en web: lo único que
+cambia es quién recoge el `code`.
 
-En ambos casos el pegado del portapapeles de `web-auth.ts` **no se usa**, y no hay
-que borrarlo: es la ruta del navegador y sigue siendo correcta allí.
+Se eligió sobre 4.1 por una razón práctica y una técnica. La práctica: el APK
+oficial está instalado en el mismo emulador y reclamar `dofustouch://` habría
+sacado un selector. La técnica es más interesante.
+
+**Google rechaza OAuth dentro de un WebView embebido** (`disallowed_useragent`),
+y el login de Ankama ofrece Google. Eso debería haber matado la ruta 4.2 — salvo
+que el cliente oficial tiene el mismo problema y lo resuelve en su `config.xml`:
+
+```xml
+<preference name="InAppBrowserOverrideUserAgent"
+  value="Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) … Safari/604.1" />
+```
+
+Presenta Safari de iPhone en su navegador interno. Copiada esa cadena tal cual al
+WebView del login, **Google carga su pantalla de acceso sin rechistar** — medido
+en el emulador. No es un disfraz que nos inventemos: es el del cliente al que
+imitamos, para el mismo problema.
+
+El pegado del portapapeles de `web-auth.ts` **no se usa aquí**, y no hay que
+borrarlo: es la ruta del navegador y sigue siendo correcta allí.
 
 **Aceptación:** entrar con la cuenta de Google sin copiar nada.
 
 ---
 
-## Fase 5 · Verificación, con el instrumento que ya existe
+## Fase 5 · Verificación — **hecha**, y el catálogo salió tocado
 
-Todo lo anterior se mide, no se supone. `injectedJavaScript` mete el probe en el
-frame del juego dentro del WebView, igual que lo inyectamos en el frame de web:
+Todo lo anterior se mide, no se supone. El probe se inyecta en el frame del juego
+dentro del WebView por DevTools remoto, y `probe.js` deriva de su propio `src` a
+dónde reportar (Fase 0.1), así que basta con `adb reverse tcp:8420 tcp:8420`.
 
-```js
-var f = document.querySelector('iframe[id^="iframe-game-"]')
-var s = f.contentDocument.createElement('script')
-s.src = 'http://10.0.2.2:8420/probe.js'
-f.contentDocument.head.appendChild(s)
+`runs/012-expo-webview.json`, con el catálogo corregido:
+
+```
+PASS 28 · FAIL 5 · MISSING 7
 ```
 
-`10.0.2.2` es el anfitrión desde el emulador, y `probe.js` ya deriva de ahí a dónde
-reportar (Fase 0.1).
+Contra los **31/9** de la web y los **15/12** de un WebView pelado. Lo que queda:
 
-Objetivo, y es alcanzable de verdad porque las cabeceras ya son de Android:
-**la capa HTTP en PASS**, que es exactamente lo que la versión web no puede lograr.
+| Señal | Qué es de verdad |
+|---|---|
+| `http.ch.highentropy`, `http.ch.arch`, `c.chrome.version` | El WebView no implementa client hints, **y el cliente real tampoco**. La señal está mal planteada, no el cliente. |
+| `http.header.order` | `x-requested-with: com.lindo.mobile`. Real, y es el tema de la Fase 6. |
+| `js.mq` | `pointer: coarse` sale `false` **en el emulador**, que responde a un ratón. Un teléfono responde `coarse`. Sin verificar en hardware real. |
 
-Corridas a guardar en `tools/android-probe/runs/`:
+Los 7 `MISSING` son las señales de client hints, por lo mismo.
 
-- `0NN-expo-webview-baseline` — antes de las fases 2 y 3
-- `0NN-expo-webview-final` — después
-- y repetir **sobre https** la de la Fase 0.1, para cerrar lo provisional
+### El catálogo salió tocado, y era lo importante
 
-Antes hay que resolver dos cosas del catálogo, o los números mentirán:
-`http.ua` rechaza el UA genuino, y `js.platform` exige `armv8l` donde Android
-moderno de 64 bits dice `aarch64`. **Arreglarlas contra el cliente real, no contra
-lo que nos convenga.**
+`http.ua` **marcó FAIL sobre el UA auténtico** del cliente, tal y como avisaba la
+Fase 0.2. Arreglado contra el cliente real y no contra lo que nos convenía:
+
+- `CHROME_ANDROID_UA` acepta ahora `Build/<id>`, `; wv` y `Version/4.0` como
+  opcionales, así que parsea tanto el WebView real como el perfil sintético del
+  escritorio, y sigue rechazando macOS y Dalvik.
+- `js.platform` acepta `Linux aarch64` además de `Linux armv8l`: los dos son
+  respuestas reales, y cuál te toca es un hecho del aparato.
+- Los tres `m.*.escape` comparaban contra una cadena literal. Lo que delata un
+  escape es que un realm hijo **discrepe** de su padre, no que no diga una
+  palabra concreta; ahora exigen discrepancia cero *y* que sea Android — porque
+  un anfitrión sin parchear también concuerda consigo mismo, y ahí sí hay algo
+  que ver.
+
+Solo eso llevó la misma captura de **20 a 28** sin tocar el cliente. Ninguna
+corrida anterior se movió: 005 sigue en 37/3 y la web en 31/9.
 
 ---
 
-## Fase 6 · Empaquetado
+## Fase 6 · Empaquetado — **hecha para local**
 
 **Expo Go no sirve**: esquema propio y `react-native-webview` piden build de
 desarrollo. `npx expo run:android` sobre el emulador para iterar; EAS o APK local
