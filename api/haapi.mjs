@@ -18,11 +18,19 @@
  * la plataforma reconozca esa sintaxis fuera de Next.js, y eso es justo lo que
  * no se puede comprobar sin desplegar. Un fichero plano no depende de nada.
  *
- * Está comprobado que la `apikey` llega hasta aquí, y aun así Ankama contesta
- * 403 con una clave que directamente da 200. Este fichero prueba una de las dos
- * explicaciones que quedan - reenviar de menos - mientras `haapi-node.mjs`
- * sigue reenviando de más. Si este responde y aquel no, era eso; si fallan los
- * dos, lo que sobra es la IP de salida y Vercel no vale para este proxy.
+ * Y aquí llega la parte incómoda: **desde un origen https esto ya no se llama**.
+ *
+ * La `apikey` llega hasta la función - se midió, con una sonda que devolvía los
+ * nombres de las cabeceras recibidas - y Ankama contesta 403 igualmente, a una
+ * clave que desde la máquina del jugador da 200. Pasó en los dos runtimes, con
+ * lista blanca y sin ella. Lo que sobra es de dónde sale la petición, y eso no
+ * se arregla escribiendo mejor el proxy: cualquier host remoto tiene el mismo
+ * problema.
+ *
+ * No hace falta: el CORS de haapi permite `APIKEY` a cualquier origen https, y
+ * el shell va directo desde ahí (ver el comentario en `game-base/index.html`).
+ * Esto queda para un origen http servido desde aquí, que hoy no existe, y como
+ * apunte de que el camino "proxy remoto" está medido y cerrado.
  */
 export const config = { runtime: 'edge' }
 

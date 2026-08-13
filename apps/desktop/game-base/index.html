@@ -185,15 +185,30 @@
         // `window.top.platform` is no good either - nothing has ever set it.
         window.lindoBrowserAuth = window.top.lindoBrowserAuth === true;
 
-        // Haapi has to be reached through this origin, not directly.
+        // Haapi, through this origin - but only where its CORS forces it.
         //
-        // Ankama's preflight answers with `access-control-request-headers` - a
-        // *request* header name - instead of `Access-Control-Allow-Headers`, so
-        // the browser never sees `apikey` allowed and blocks the account call
-        // that follows a successful login. Nothing on this side can fix that;
-        // the same-origin path in front of a proxy can, and Electron is
-        // unaffected because it is not subject to CORS at all.
-        if (window.lindoBrowserAuth) {
+        // The rule is not what it looked like. Ankama's preflight answers
+        // differently depending on the origin that asks:
+        //
+        //   https://anything          reflects the origin, allows APIKEY
+        //   http://127.0.0.1:<port>   reflects the origin, allows APIKEY
+        //   http://localhost:<port>   `*`, and no allow-headers at all
+        //
+        // Only the last one blocks the account call, and that is the origin the
+        // dev server uses - which is where this was first diagnosed, and why the
+        // conclusion got generalised into "haapi always needs a proxy".
+        //
+        // It does not, and on a hosted origin the proxy is actively harmful: the
+        // request then leaves from the host instead of from the player, and
+        // Ankama answers 403 to a key that works from the player's own address.
+        // That is a login that cannot succeed no matter how the proxy is
+        // written - measured on Vercel, on both of its runtimes.
+        //
+        // So: proxy over http, direct over https. Everything that works today is
+        // an http origin - the dev server and the APK's loopback server, both of
+        // which run beside the player - and stays exactly as it was. Electron
+        // never gets here; it is not subject to CORS at all.
+        if (window.lindoBrowserAuth && location.protocol !== "https:") {
             (function () {
                 var HAAPI = "https://haapi.ankama.com/";
                 var nativeFetch = window.fetch;
