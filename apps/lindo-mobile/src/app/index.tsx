@@ -206,6 +206,9 @@ export default function Index() {
             }
           }}
           onLoadEnd={() => setLoading(false)}
+          // DevTools remoto también en release: sin esto un fallo dentro de la
+          // página solo se ve como una pantalla negra desde fuera
+          webviewDebuggingEnabled
           onError={(event) => console.warn('lindo[webview] error', JSON.stringify(event.nativeEvent))}
           onHttpError={(event) => console.warn('lindo[webview] http', JSON.stringify(event.nativeEvent))}
           // sin esto `window.open` abre una ventana que no controlamos y el login

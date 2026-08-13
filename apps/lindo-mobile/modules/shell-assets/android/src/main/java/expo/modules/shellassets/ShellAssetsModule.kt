@@ -104,9 +104,21 @@ internal class ShellServer(private val context: Context) {
     }
   }
 
-  private data class Request(val method: String, val path: String, val headers: Map<String, String>)
+  private data class Request(
+    val method: String,
+    val path: String,
+    val headers: Map<String, String>,
+    val body: ByteArray
+  )
 
-  /** la línea de petición y sus cabeceras; el cuerpo no se usa y no se lee */
+  /**
+   * La línea de petición, sus cabeceras y su cuerpo.
+   *
+   * El cuerpo hay que leerlo aunque parezca que no se usa: `RefreshApiKey` de
+   * haapi es un POST, y reenviarlo sin cuerpo hacía que Ankama contestara 422 y
+   * el cliente enseñara "todos los servidores están en mantenimiento". Un fallo
+   * que no daba la cara en web ni en Electron, donde el proxy sí lo reenvía.
+   */
   private fun readRequest(input: InputStream): Request? {
     val first = readLine(input) ?: return null
     val parts = first.split(' ')
@@ -121,7 +133,19 @@ internal class ShellServer(private val context: Context) {
         headers[line.substring(0, separator).trim().lowercase()] = line.substring(separator + 1).trim()
       }
     }
-    return Request(parts[0], parts[1], headers)
+    val length = headers["content-length"]?.toIntOrNull() ?: 0
+    val body = if (length > 0) ByteArray(length).also { readFully(input, it) } else ByteArray(0)
+    return Request(parts[0], parts[1], headers, body)
+  }
+
+  /** `read` puede devolver menos de lo pedido, y un cuerpo a medias es un 422 */
+  private fun readFully(input: InputStream, buffer: ByteArray) {
+    var read = 0
+    while (read < buffer.size) {
+      val count = input.read(buffer, read, buffer.size - read)
+      if (count == -1) break
+      read += count
+    }
   }
 
   private fun readLine(input: InputStream): String? {
@@ -192,6 +216,13 @@ internal class ShellServer(private val context: Context) {
             setRequestProperty(name, value)
           }
         }
+        if (request.body.isNotEmpty()) {
+          doOutput = true
+          setFixedLengthStreamingMode(request.body.size)
+        }
+      }
+      if (request.body.isNotEmpty()) {
+        connection.outputStream.use { it.write(request.body) }
       }
       val status = connection.responseCode
       val body = (if (status >= 400) connection.errorStream else connection.inputStream)
