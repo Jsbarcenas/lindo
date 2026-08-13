@@ -101,3 +101,8 @@ dist-ssr
 # expo
 .expo
 expo-env.d.ts
+
+# el arbol del juego que fetch-game.mjs construye: descargado y parcheado, ~9 MB,
+# reproducible con `pnpm --filter lindo-web fetch-game`
+apps/lindo-web/public/game/
+apps/lindo-web/.game-cache/
