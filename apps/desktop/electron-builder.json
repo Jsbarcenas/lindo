@@ -1,0 +1,117 @@
+{
+  "appId": "com.lindo.app",
+  "productName": "Lindo",
+  "copyright": "Copyright \u00a9 2026 Santiago Barcenas",
+  "asar": true,
+  "directories": {
+    "output": "release/${version}",
+    "buildResources": "resources"
+  },
+  "files": [
+    "dist",
+    "game-base",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "extraResources": [
+    {
+      "from": "resources/icon.png",
+      "to": "icon.png"
+    }
+  ],
+  "win": {
+    "icon": "resources/icon.ico",
+    "target": [
+      {
+        "target": "zip",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      },
+      {
+        "target": "nsis",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "artifactName": "${productName}-Setup-${version}.${ext}",
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}.${ext}"
+  },
+  "afterPack": "./scripts/afterPackHook.js",
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "Jsbarcenas",
+      "repo": "lindo"
+    }
+  ],
+  "mac": {
+    "target": [
+      {
+        "target": "default",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "category": "public.app-category.games"
+  },
+  "linux": {
+    "executableName": "Lindo",
+    "description": "Lindo Client for Linux",
+    "icon": "resources/icons",
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "tar.gz",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "deb",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "desktop": {
+      "entry": {
+        "Comment": "Lindo Desktop Client",
+        "Categories": "Game;",
+        "Keywords": "Games",
+        "MimeType": "application/x-executable;",
+        "Terminal": "false",
+        "Type": "Application"
+      }
+    },
+    "maintainer": "Santiago Barcenas"
+  }
+}

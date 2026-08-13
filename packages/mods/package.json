@@ -1,0 +1,28 @@
+{
+  "name": "@lindo/mods",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lindo/client-store": "workspace:*",
+    "@lindo/dofus-window": "workspace:*",
+    "@lindo/i18n": "workspace:*",
+    "@lindo/shared": "workspace:*",
+    "axios": "^0.27.2",
+    "eventemitter3": "^4.0.7",
+    "mobx": "^6.6.0",
+    "mobx-state-tree": "^5.1.5",
+    "shortcuts": "^1.8.1",
+    "typed-emitter": "^2.1.0"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

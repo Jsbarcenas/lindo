@@ -1,0 +1,13 @@
+{
+  "name": "@lindo/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "base.json",
+    "electron-main.json",
+    "electron-preload.json",
+    "react-app.json",
+    "react-native.json",
+    "web.json"
+  ]
+}

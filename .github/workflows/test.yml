@@ -1,0 +1,34 @@
+name: 'test-on-pr'
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  # push:
+  #   branches: [main]
+  pull_request:
+
+permissions: {}
+
+jobs:
+  test-lindo:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # must come before setup-node so that cache: pnpm can find it
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install app dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check linter
+        run: pnpm lint
+      - name: Build the application
+        run: pnpm build

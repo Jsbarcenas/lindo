@@ -1,0 +1,23 @@
+{
+  "name": "@lindo/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./utils/hotkey-check.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lindo/i18n": "workspace:*",
+    "mobx-state-tree": "^5.1.5",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "@types/uuid": "^8.3.4",
+    "typescript": "^5.9.3"
+  }
+}

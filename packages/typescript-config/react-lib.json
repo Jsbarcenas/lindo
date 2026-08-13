@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "React library shipped as a workspace package",
+  "extends": "./react-app.json",
+  "compilerOptions": {
+    // react-app.json empties `types` and lets the app supply the ambient
+    // declarations through src/vite-env.d.ts. A package has no such entry file
+    // of its own, so it names what it needs here instead. vite/client is what
+    // types the `*.module.scss` imports; without it every SCSS module in this
+    // package resolves to `any` at best and errors at worst.
+    "types": ["vite/client"]
+  }
+}

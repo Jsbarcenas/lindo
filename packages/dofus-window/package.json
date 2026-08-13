@@ -1,0 +1,19 @@
+{
+  "name": "@lindo/dofus-window",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "typed-emitter": "^2.1.0"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

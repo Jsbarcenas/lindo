@@ -1,0 +1,42 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  // These sit at the root but every package's result depends on them, so a
+  // change has to invalidate the whole graph rather than nothing at all.
+  "globalDependencies": ["tsconfig.json", ".eslintrc.json", ".eslintignore"],
+  "tasks": {
+    // typesafe-i18n writes its output back into packages/i18n, and that output
+    // is committed. Caching a task whose artefacts are tracked files buys
+    // nothing and can restore a stale tree over a fresh edit.
+    "generate": {
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^generate"]
+    },
+    "test": {
+      "dependsOn": ["^generate"]
+    },
+    // lindo-web and lindo-mobile build to plain JS bundles: same inputs, same
+    // output, on any host. Those are cacheable.
+    "build": {
+      "dependsOn": ["^generate", "typecheck"],
+      "outputs": ["dist/**"]
+    },
+    // Desktop is the exception, and it has to be stated per package rather than
+    // for every build. turbo's hash covers inputs, not the host, so an entry
+    // produced on macOS would be replayed on a Linux runner - and what
+    // electron-builder emits is platform-specific, signed, and native-rebuilt
+    // per architecture. Splitting the vite bundles (cacheable) from the
+    // packaging step (not) is the way to earn caching here later.
+    "@lindo/desktop#build": {
+      "dependsOn": ["^generate", "typecheck"],
+      "cache": false,
+      "outputs": ["dist/**", "release/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

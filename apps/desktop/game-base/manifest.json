@@ -1,0 +1,28 @@
+{
+  "files": {
+    "fixes.js": {
+      "filename": "fixes.js",
+      "version": "1.4.5"
+    },
+    "fixes.css": {
+      "filename": "fixes.css",
+      "version": "1.0.2"
+    },
+    "index.html": {
+      "filename": "index.html",
+      "version": "1.2.4"
+    },
+    "regex.json": {
+      "filename": "regex.json",
+      "version": "1.9.0"
+    },
+    "keymaster2.js": {
+      "filename": "keymaster2.js",
+      "version": "1.0.1"
+    },
+    "icon.png": {
+      "filename": "icon.png",
+      "version": "1.0.0"
+    }
+  }
+}

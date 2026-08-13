@@ -1,0 +1,10 @@
+{
+  "extends": ["../../.eslintrc.json", "plugin:react/jsx-runtime"],
+  "env": {
+    "browser": false,
+    "es2021": true
+  },
+  "globals": {
+    "__DEV__": "readonly"
+  }
+}

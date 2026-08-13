@@ -1,0 +1,21 @@
+{
+  "name": "@lindo/updater-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "axios": "^0.27.2"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "axios": "^0.27.2",
+    "typescript": "^5.9.3"
+  }
+}

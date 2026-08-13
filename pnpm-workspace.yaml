@@ -1,0 +1,44 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Deliberately on pnpm's default isolated node_modules layout.
+#
+# `nodeLinker: hoisted` looks tempting because electron-builder wants a flat
+# tree, but hoisting lets a devDependency-only version win the top-level slot,
+# and electron-builder then copies *that* directory into the asar while
+# computing the dependency closure from the production graph. The versions
+# disagree, transitive dependencies go missing, and the app dies on launch with
+# a bare "Cannot find module" - a failure invisible to every check except
+# running the packaged app. Isolated layout prevents version shadowing between
+# top-level devDependencies and production requirements.
+#
+# The isolated layout gives every package exactly its own resolved dependencies,
+# so there is nothing to shadow. Native modules are still rebuilt against
+# Electron by the `postinstall` hook, which no longer depends on hoisting.
+# `scripts/verify-asar.mjs` guards the invariant.
+
+# axios-retry@3 augments axios' own types (`declare module 'axios'`) but lists
+# axios only as a devDependency, so under the isolated layout it cannot resolve
+# axios from its own directory and the augmentation is dropped.
+# Explicitly declaring the peer dependency enforces proper module resolution.
+
+packageExtensions:
+  axios-retry@3:
+    peerDependencies:
+      axios: '*'
+
+# pnpm blocks dependency build scripts by default. Decide explicitly for each one.
+allowBuilds:
+  # downloads its binary - the app cannot start without it
+  electron: true
+  # downloads its binary - vite cannot build without it
+  esbuild: true
+  # native addon, resolves its prebuilt N-API binding
+  argon2: true
+  # native addon used by the typesafe-i18n watcher
+  '@parcel/watcher': true
+  # postinstall only wires up its CLI, not needed here
+  protobufjs: false
+  # picks a 7z binary for the squirrel target, which this app does not build
+  electron-winstaller: false

@@ -1,0 +1,26 @@
+{
+  "name": "lindo-mobile",
+  "version": "0.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build": "expo export --output-dir dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~57.0.12",
+    "expo-router": "~57.0.12",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-web": "~0.21.0"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "@types/react": "~19.2.0",
+    "typescript": "^5.9.3"
+  }
+}

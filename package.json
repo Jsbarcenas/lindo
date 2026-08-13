@@ -1,0 +1,32 @@
+{
+  "name": "lindo",
+  "private": true,
+  "description": "Monorepo for the Lindo desktop client",
+  "homepage": "https://github.com/Jsbarcenas/lindo",
+  "author": "Santiago Barcenas",
+  "license": "GPL-3.0",
+  "scripts": {
+    "postinstall": "pnpm --filter @lindo/desktop exec electron-builder install-app-deps",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run typecheck test && eslint --resolve-plugins-relative-to packages/eslint-config apps/*/src packages",
+    "test": "turbo run test",
+    "dev": "turbo run dev",
+    "smoke": "pnpm --filter @lindo/desktop smoke",
+    "build": "turbo run build",
+    "check:electron": "pnpm --filter @lindo/desktop check:electron",
+    "verify:asar": "pnpm --filter @lindo/desktop verify:asar"
+  },
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@lindo/eslint-config": "workspace:*",
+    "@lindo/typescript-config": "workspace:*",
+    "doctoc": "^2.2.0",
+    "eslint": "^8.0.1",
+    "prettier": "^2.6.2",
+    "turbo": "^2.10.9",
+    "typescript": "^5.9.3"
+  }
+}

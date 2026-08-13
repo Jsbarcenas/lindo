@@ -1,0 +1,26 @@
+{
+  "name": "@lindo/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "generate": "typesafe-i18n --no-watch",
+    "dev": "typesafe-i18n",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "typesafe-i18n": "^5.5.2"
+  },
+  "peerDependencies": {
+    "react": "^18.1.0"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "@types/react": "^18.0.9",
+    "react": "^18.1.0",
+    "typescript": "^5.9.3"
+  }
+}

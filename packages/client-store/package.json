@@ -1,0 +1,29 @@
+{
+  "name": "@lindo/client-store",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lindo/shared": "workspace:*",
+    "mobx-state-tree": "^5.1.5",
+    "object-hash": "^3.0.0",
+    "uuid": "^8.3.2"
+  },
+  "peerDependencies": {
+    "react": "^18.1.0"
+  },
+  "devDependencies": {
+    "@lindo/typescript-config": "workspace:*",
+    "@types/object-hash": "^2.2.1",
+    "@types/react": "^18.0.9",
+    "@types/uuid": "^8.3.4",
+    "react": "^18.1.0",
+    "typescript": "^5.9.3"
+  }
+}

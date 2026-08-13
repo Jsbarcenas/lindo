@@ -1,0 +1,10 @@
+{
+  "extends": "@lindo/typescript-config/react-app.json",
+  "compilerOptions": {
+    // do not auto-include every @types package: some are stubs without
+    // declarations (@types/minimatch) and break the whole program.
+    // Ambient types this package needs come from src/vite-env.d.ts.
+    "types": []
+  },
+  "include": ["src"]
+}

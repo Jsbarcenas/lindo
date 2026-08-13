@@ -1,0 +1,10 @@
+{
+  "extends": [
+    "expo/tsconfig.base",
+    "@lindo/typescript-config/react-native.json"
+  ],
+  "include": [
+    "src",
+    "*.ts"
+  ]
+}

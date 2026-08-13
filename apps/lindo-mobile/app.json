@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Lindo Mobile",
+    "slug": "lindo-mobile",
+    "scheme": "lindo",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lindo.mobile"
+    },
+    "android": {
+      "package": "com.lindo.mobile"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": ["expo-router"]
+  }
+}

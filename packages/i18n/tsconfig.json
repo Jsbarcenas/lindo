@@ -1,0 +1,4 @@
+{
+  "extends": "@lindo/typescript-config/react-app.json",
+  "include": ["**/*.ts", "**/*.tsx"]
+}

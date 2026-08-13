@@ -1,0 +1,10 @@
+{
+  "extends": "@lindo/typescript-config/react-app.json",
+  "compilerOptions": {
+    // react-app.json sets types: [], and this package needs none of the ambient
+    // ones - but it does read window.lindoAPI, which reaches it through the
+    // Window augmentation @lindo/shared carries.
+    "types": []
+  },
+  "include": ["**/*.ts"]
+}
