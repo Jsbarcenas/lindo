@@ -1,0 +1,17 @@
+# Netlify, y cualquier host que lea este formato.
+#
+# El cliente es estático entero salvo por una cosa: haapi. Su preflight sirve
+# dos respuestas distintas -con las cabeceras `Access-Control-Request-*` permite
+# `APIKEY` y refleja el origen; sin ellas contesta `allow-origin: *` y sin
+# `allow-headers`- y CloudFront las cachea siete días sin variar por origen. La
+# que caiga primero en tu POP es la que manda, así que el login puede funcionar
+# o no según el día y el sitio. Alcanzado desde el mismo origen no hay CORS que
+# fallar, y por eso este rewrite no es opcional.
+#
+# Es el equivalente de `proxyHaapi` en `server.mjs` y del rewrite de
+# `vercel.json`. El orden importa: esta regla va antes que el comodín.
+/haapi/*  https://haapi.ankama.com/:splat  200
+
+# Las rutas de la aplicación las resuelve el cliente. Los ficheros que existen
+# se sirven antes que esta regla, así que el shell del juego no se ve afectado.
+/*  /index.html  200
