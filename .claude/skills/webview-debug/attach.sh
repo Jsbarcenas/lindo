@@ -29,7 +29,8 @@ SOCKET="$("$ADB" -s "$DEVICE" shell cat /proc/net/unix 2>/dev/null \
   | grep -o 'webview_devtools_remote_[0-9]*' | sort -u | head -1)"
 if [[ -z "$SOCKET" ]]; then
   echo "el WebView no expone DevTools." >&2
-  echo "En release hace falta la prop 'webviewDebuggingEnabled' en src/app/index.tsx." >&2
+  echo "En release está apagado a propósito: usa una compilación de depuración" >&2
+  echo "  pnpm --filter lindo-mobile android" >&2
   exit 2
 fi
 

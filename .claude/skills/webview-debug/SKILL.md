@@ -48,9 +48,18 @@ es de JS o de red.
 volver a lanzar `attach.sh`. Si no, se sigue mirando un puerto muerto y parece
 que no pasa nada.
 
-**En release DevTools está apagado salvo por una prop.** `webviewDebuggingEnabled`
-en `src/app/index.tsx`. Está puesta a propósito; si desaparece, esta ruta entera
-deja de funcionar.
+**En release DevTools está apagado.** `webviewDebuggingEnabled={__DEV__}` en
+`src/app/index.tsx`: el APK que se reparte lleva dentro la sesión de quien lo
+use, y dejarlo abierto es dejar esa sesión a mano de cualquiera con el móvil
+delante. Así que esta ruta se recorre sobre una compilación de depuración:
+
+```bash
+pnpm --filter lindo-mobile android
+```
+
+`build:android` siempre hace `assembleRelease`, y ahí DevTools no está. Si hay
+que mirar dentro de un release concreto, se pone la prop a `true` a mano, se
+compila, y se devuelve antes de comitear.
 
 **Hay más de un contexto.** El service worker es un target aparte y sirve
 `/game/build/*` desde IndexedDB. `netwatch.mjs` se engancha a todos; mirar solo
