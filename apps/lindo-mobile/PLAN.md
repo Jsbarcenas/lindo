@@ -361,10 +361,20 @@ Todo lo anterior se mide, no se supone. El probe se inyecta en el frame del jueg
 dentro del WebView por DevTools remoto, y `probe.js` deriva de su propio `src` a
 dónde reportar (Fase 0.1), así que basta con `adb reverse tcp:8420 tcp:8420`.
 
-`runs/012-expo-webview.json`, con el catálogo corregido:
+`runs/013-expo-webview-in-game.json`, ya con un personaje dentro y el catálogo
+corregido (`012-expo-webview.json` es la misma medida desde la pantalla de login,
+y da idéntico):
 
 ```
-PASS 28 · FAIL 5 · MISSING 7
+PASS 28 · FAIL 5 · MISSING 7   ·   trusted, isGameFrame: true
+```
+
+`http.ua` en **PASS** con el UA auténtico:
+
+```
+Mozilla/5.0 (Linux; Android 13; sdk_gphone64_arm64 Build/TE1A.240213.009; wv)
+AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/109.0.5414.123
+Mobile Safari/537.36 DofusTouch Client 3.14.0
 ```
 
 Contra los **31/9** de la web y los **15/12** de un WebView pelado. Lo que queda:
