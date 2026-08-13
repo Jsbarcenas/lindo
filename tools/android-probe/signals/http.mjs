@@ -21,17 +21,25 @@ const verdict = (id, family, fixable, ok, observed, expected) => ({
 })
 
 /**
- * The Chrome-on-Android User-Agent shape.
+ * The User-Agent shape of the client we are imitating.
  *
- * Note this is deliberately stricter than what the game's own UAParser accepts:
- * that one resolves every string carrying "Android" to the Android OS, including
- * `Dalvik/...`, which is the platform HTTP stack rather than a browser. A
- * checker looking at a browser request has every reason to expect a browser
- * User-Agent, so a Dalvik one is reported as a failure here even though the
- * bundle would have been satisfied by it.
+ * Written from the real thing, not from an idea of what Android looks like.
+ * Dofus Touch is a Cordova app, so it runs in the system WebView and its string
+ * carries what every WebView carries: a `Build/<id>` fragment, the `wv` token,
+ * and `Version/4.0` between the engine and the Chrome version. The earlier
+ * version of this pattern described Chrome-on-Android instead and therefore
+ * **rejected the genuine article** - it graded a capture taken straight from the
+ * official client as a failure, which is the worst way for a catalogue to be
+ * wrong. All three are optional so a plain Chrome-on-Android string, which is
+ * what the desktop and web builds synthesise, still parses.
+ *
+ * Still deliberately stricter than the game's own UAParser: that one resolves
+ * every string carrying "Android" to the Android OS, including `Dalvik/...`,
+ * which is the platform HTTP stack rather than a browser. A checker looking at a
+ * browser request has every reason to expect a browser User-Agent.
  */
 const CHROME_ANDROID_UA =
-  /^Mozilla\/5\.0 \(Linux; Android (\d+(?:\.\d+)*); ([^)]+?)\) AppleWebKit\/537\.36 \(KHTML, like Gecko\) Chrome\/(\d+)\.[\d.]+ Mobile Safari\/537\.36/
+  /^Mozilla\/5\.0 \(Linux; Android (\d+(?:\.\d+)*); ([^)]+?)(?: Build\/[^);]+)?(?:; wv)?\) AppleWebKit\/537\.36 \(KHTML, like Gecko\)(?: Version\/[\d.]+)? Chrome\/(\d+)\.[\d.]+ Mobile Safari\/537\.36/
 
 export const parseUserAgent = (ua) => {
   if (!ua) return null

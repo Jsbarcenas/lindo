@@ -81,6 +81,16 @@ const MACOS_ONLY_FONTS = ['Helvetica Neue', 'SF Pro Text', 'Lucida Grande', 'Gen
 /** speech voices macOS installs by default */
 const MACOS_VOICE = /alex|samantha|victoria|fred|daniel|karen|moira/i
 
+/**
+ * Both are real answers, and which one you get is a fact about the device.
+ *
+ * A 64-bit Android reports `Linux aarch64`; the 32-bit ABI reports
+ * `Linux armv8l`, which is what the synthetic profiles claim. Insisting on one
+ * of them marked a genuine phone as a failure.
+ */
+const ANDROID_PLATFORMS = 'Linux armv8l or Linux aarch64'
+const isAndroidPlatform = (value) => value === 'Linux armv8l' || value === 'Linux aarch64'
+
 export const JS_SIGNALS = [
   {
     id: 'js.uad.platform',
@@ -97,7 +107,7 @@ export const JS_SIGNALS = [
   },
   {
     id: 'js.platform',
-    run: (ctx) => verdict('js.platform', 'D', 'client', ctx.js.platform === 'Linux armv8l', ctx.js.platform, 'Linux armv8l')
+    run: (ctx) => verdict('js.platform', 'D', 'client', isAndroidPlatform(ctx.js.platform), ctx.js.platform, ANDROID_PLATFORMS)
   },
   {
     id: 'js.vendor',
@@ -282,9 +292,17 @@ export const JS_SIGNALS = [
     run: (ctx) => {
       // a freshly created frame gets a clean realm: if the overrides were applied
       // to one window object rather than installed per frame, the real value
-      // shows up here and nowhere else
-      const ok = ctx.js.iframePlatform === 'Linux armv8l'
-      return verdict('m.iframe.escape', 'M', 'client', ok, ctx.js.iframePlatform, 'Linux armv8l inside a new iframe')
+      // shows up here and nowhere else.
+      //
+      // What makes an escape visible is the child *disagreeing* with the main
+      // realm, not the child failing to say one particular string. Naming the
+      // string meant this reported an escape on a real phone, where every realm
+      // agreed on `Linux aarch64` and nothing had escaped at all.
+      // dos condiciones, y hacen falta las dos: concordar con el realm principal
+      // -un hijo que discrepa es un override que no se aplicó allí- y ser Android,
+      // porque un anfitrión sin parchear también concuerda consigo mismo
+      const ok = ctx.js.iframePlatform === ctx.js.platform && isAndroidPlatform(ctx.js.iframePlatform)
+      return verdict('m.iframe.escape', 'M', 'client', ok, ctx.js.iframePlatform, `${ANDROID_PLATFORMS}, inside a new iframe`)
     }
   },
   {
@@ -303,15 +321,21 @@ export const JS_SIGNALS = [
           fixable: 'client'
         }
       }
-      const ok = ctx.js.parentPlatform === 'Linux armv8l'
-      return verdict('m.parent.escape', 'M', 'client', ok, ctx.js.parentPlatform, 'Linux armv8l in top.navigator')
+      // dos condiciones, y hacen falta las dos: concordar con el realm principal
+      // -un hijo que discrepa es un override que no se aplicó allí- y ser Android,
+      // porque un anfitrión sin parchear también concuerda consigo mismo
+      const ok = ctx.js.parentPlatform === ctx.js.platform && isAndroidPlatform(ctx.js.parentPlatform)
+      return verdict('m.parent.escape', 'M', 'client', ok, ctx.js.parentPlatform, `${ANDROID_PLATFORMS}, in top.navigator`)
     }
   },
   {
     id: 'm.worker.escape',
     run: (ctx) => {
-      const ok = ctx.js.workerPlatform === 'Linux armv8l'
-      return verdict('m.worker.escape', 'M', 'client', ok, ctx.js.workerPlatform, 'Linux armv8l inside a worker')
+      // dos condiciones, y hacen falta las dos: concordar con el realm principal
+      // -un hijo que discrepa es un override que no se aplicó allí- y ser Android,
+      // porque un anfitrión sin parchear también concuerda consigo mismo
+      const ok = ctx.js.workerPlatform === ctx.js.platform && isAndroidPlatform(ctx.js.workerPlatform)
+      return verdict('m.worker.escape', 'M', 'client', ok, ctx.js.workerPlatform, `${ANDROID_PLATFORMS}, inside a worker`)
     }
   },
   {

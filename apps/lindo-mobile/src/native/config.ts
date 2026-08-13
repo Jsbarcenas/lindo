@@ -13,6 +13,9 @@
  */
 export const CLIENT_URL = process.env.EXPO_PUBLIC_LINDO_URL ?? 'http://localhost:5173'
 
+/** el origen del cliente: lo único que su WebView tiene permitido navegar */
+export const CLIENT_ORIGIN = new URL(CLIENT_URL).origin
+
 /**
  * Lo que Cordova llama `AppendUserAgent`, que es lo que hace el cliente real.
  *

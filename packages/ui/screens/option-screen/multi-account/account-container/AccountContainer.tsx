@@ -8,6 +8,7 @@ import { useDialog } from '../../../../hooks'
 import { AddCharacterDialog } from '../add-character-dialog'
 import { FormTeamDialog } from '../form-team-dialog'
 import { useI18nContext } from '@lindo/i18n'
+import { besideOptionTabsSx } from '@lindo/theme'
 
 export const AccountContainer = () => {
   const {
@@ -20,7 +21,7 @@ export const AccountContainer = () => {
   return (
     <>
       <Box
-        sx={{ flexDirection: 'row', p: 2, display: 'flex', gap: '10px', width: 'calc(100vw - 150px)' }}
+        sx={{ flexDirection: 'row', p: 2, display: 'flex', gap: '10px', ...besideOptionTabsSx }}
         style={{ overflowX: 'auto' }}
       >
         <CharacterGenericCard>

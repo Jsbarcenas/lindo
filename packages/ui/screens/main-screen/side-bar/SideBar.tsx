@@ -23,6 +23,7 @@ import { Observer } from 'mobx-react-lite'
 import { Game, useStores } from '@lindo/client-store'
 import { TabAdd, TabGame } from './tab'
 import { Box, IconButton } from '@mui/material'
+import { COMPACT, TIGHT } from '@lindo/theme'
 
 const SideBarContainer = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -31,8 +32,17 @@ const SideBarContainer = styled('div')(({ theme }) => ({
   width: '71px',
   display: 'flex',
   alignItems: 'center',
-  flexDirection: 'column'
+  flexDirection: 'column',
+  flexShrink: 0,
+  [COMPACT]: { width: '56px' },
+  [TIGHT]: { width: '46px' }
 }))
+
+/** en una pantalla corta cada botón del pie es alto que le falta a las pestañas */
+const compactButtonSx = {
+  mb: 1,
+  [TIGHT]: { mb: 0.25, p: 0.5, '& svg': { fontSize: 18 } }
+}
 
 const SortableItem = ({ game }: { game: Game }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: game.id })
@@ -99,12 +109,12 @@ export const SideBar = () => {
       <TabAdd />
       <Box sx={{ flex: 1 }} />
 
-      <IconButton onClick={handleToggleVolume} sx={{ mb: 1 }} aria-label='toggle-volume'>
+      <IconButton onClick={handleToggleVolume} sx={compactButtonSx} aria-label='toggle-volume'>
         <Observer>
           {() => (gameStore.isMuted ? <VolumeOff color={'error'} /> : <VolumeUp color={'primary'} />)}
         </Observer>
       </IconButton>
-      <IconButton onClick={handleOpenOption} sx={{ mb: 1 }} aria-label='settings'>
+      <IconButton onClick={handleOpenOption} sx={compactButtonSx} aria-label='settings'>
         <Settings />
       </IconButton>
     </SideBarContainer>

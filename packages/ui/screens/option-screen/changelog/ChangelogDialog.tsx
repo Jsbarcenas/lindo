@@ -1,4 +1,5 @@
 // import { useI18nContext } from '@lindo/i18n'
+import { optionTabsSx } from '@lindo/theme'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Tab, Tabs, useTheme } from '@mui/material'
 import React, { memo, useEffect } from 'react'
 import { useChangelog } from './use-changelog'
@@ -44,8 +45,7 @@ export const ChangelogDialog = memo(({ open, onClose }: ChangelogDialogProps) =>
           sx={{
             borderRight: 1,
             borderColor: 'divider',
-            width: '150px',
-            flexShrink: 0,
+            ...optionTabsSx,
             backgroundColor: theme.palette.background.default
           }}
         >

@@ -10,6 +10,22 @@
   font-size: 40px;
   text-align: center;
 
+  // El mismo umbral que COMPACT/TIGHT en @lindo/theme: aquí no se puede
+  // importar la constante, así que si allí cambia, cambia también aquí.
+  @media (max-width: 900px), (max-height: 540px) {
+    width: 44px;
+    height: 44px;
+    margin-top: 5px;
+    font-size: 30px;
+  }
+
+  @media (max-height: 440px) {
+    width: 36px;
+    height: 36px;
+    margin-top: 4px;
+    font-size: 24px;
+  }
+
   &.tab-game {
     opacity: .7;
     border-width: 1px;

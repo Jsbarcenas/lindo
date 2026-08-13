@@ -1,5 +1,6 @@
 import { useDialog } from '../../hooks'
 import { useI18nContext } from '@lindo/i18n'
+import { optionTabsSx } from '@lindo/theme'
 import {
   Box,
   Button,
@@ -52,7 +53,7 @@ export const OptionScreen = () => {
           value={selectedTab}
           onChange={handleChange}
           aria-label='option-categories'
-          sx={{ borderRight: 1, borderColor: 'divider', width: '150px', flexShrink: 0 }}
+          sx={{ borderRight: 1, borderColor: 'divider', ...optionTabsSx }}
         >
           <Tab label={LL.option.general.title()} />
           <Tab label={LL.option.shortcuts.title()} />

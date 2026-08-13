@@ -2,8 +2,39 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" id="lindo-viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Lindo Web</title>
+    <script>
+      /*
+       * El alto mínimo que el cliente se garantiza a sí mismo.
+       *
+       * No es una cifra elegida aquí: está en `assets/www/index.html` del APK
+       * oficial, que declara `MIN_SUPPORTED_HEIGHT = 600` y, cuando la pantalla
+       * da menos, ensancha el viewport en proporción en vez de aceptarlo. Un
+       * móvil en horizontal ofrece unos 412 px CSS de alto, así que sin esto el
+       * cliente se maqueta en 412 - se le sale el pie y las noticias tapan el
+       * panel de login. Con esto se maqueta en 600 y el navegador lo escala.
+       *
+       * Va en el documento de arriba y no en `game-base/index.html` porque un
+       * `<meta name="viewport">` dentro de una iframe no lo lee nadie: solo
+       * cuenta el del documento de nivel superior. Y como el cromo de Lindo
+       * comparte ese documento, se escala con él, que es justo lo que hace
+       * falta en una pantalla pequeña.
+       *
+       * En un navegador de escritorio el meta se ignora entero, así que esto no
+       * puede afectar a la ventana de siempre.
+       */
+      ;(function () {
+        var long = Math.max(screen.width, screen.height)
+        var short = Math.min(screen.width, screen.height)
+        var MIN_SUPPORTED_HEIGHT = 600
+        if (!short || short >= MIN_SUPPORTED_HEIGHT) return
+        var width = parseInt(MIN_SUPPORTED_HEIGHT * (long / short), 10)
+        document
+          .getElementById('lindo-viewport')
+          .setAttribute('content', 'width=' + width + ', maximum-scale=1, user-scalable=no, viewport-fit=cover')
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

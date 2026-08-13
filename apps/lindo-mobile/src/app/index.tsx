@@ -1,8 +1,20 @@
 import { useKeepAwake } from 'expo-keep-awake'
+import * as NavigationBar from 'expo-navigation-bar'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, BackHandler, Modal, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  BackHandler,
+  Linking,
+  Modal,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View
+} from 'react-native'
 import { WebView, type WebViewNavigation } from 'react-native-webview'
-import { AUTH_UA, CLIENT_UA_SUFFIX, CLIENT_URL } from '../native/config'
+import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes'
+import { AUTH_UA, CLIENT_ORIGIN, CLIENT_UA_SUFFIX, CLIENT_URL } from '../native/config'
 import { collectNativeInfo, nativePrelude, parseWebMessage, resolveAuth } from '../native/bridge'
 
 const styles = StyleSheet.create({
@@ -20,6 +32,11 @@ const styles = StyleSheet.create({
   authTitle: { color: '#e0e0e0', fontSize: 15, fontWeight: '600' },
   authClose: { color: '#7cb342', fontSize: 15, fontWeight: '600' }
 })
+
+/** una promesa que no se espera a propósito, con su fallo a la vista */
+const detach = (promise: Promise<unknown>): void => {
+  promise.catch((error) => console.warn('lindo: no se pudo abrir fuera de la app', error))
+}
 
 /** el `code` tal y como aparece en la URL de vuelta */
 const codeFrom = (url: string): string | undefined => {
@@ -59,10 +76,35 @@ export default function Index() {
     return true
   }, [authUrl])
 
+  /**
+   * Pantalla completa de verdad.
+   *
+   * Expo dibuja de borde a borde, así que sin esto la barra de gestos se queda
+   * encima del WebView y le tapa el pie - que es justo donde el cliente pone su
+   * versión y el "jugar como invitado". Se recupera deslizando desde el borde.
+   */
+  useEffect(() => {
+    detach(NavigationBar.setVisibilityAsync('hidden'))
+  }, [])
+
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', onBack)
     return () => subscription.remove()
   }, [onBack])
+
+  /**
+   * Lo que puede navegar el WebView del juego: el juego, y nada más.
+   *
+   * Con `setSupportMultipleWindows` en false, un `target="_blank"` no abre una
+   * ventana nueva sino que **sustituye** la actual, así que el primer enlace de
+   * las noticias de Ankama se lleva el cliente entero por delante y no hay forma
+   * de volver. Lo de fuera se abre fuera; lo de casa sigue su camino.
+   */
+  const onGameNavigation = useCallback((request: ShouldStartLoadRequest) => {
+    if (request.url.startsWith(CLIENT_ORIGIN)) return true
+    detach(Linking.openURL(request.url))
+    return false
+  }, [])
 
   /**
    * El login, en un WebView nuestro en vez de en una pestaña que no podemos
@@ -107,6 +149,7 @@ export default function Index() {
         androidLayerType='hardware'
         // la restricción dura: contexto seguro o nada
         originWhitelist={['https://*', 'http://localhost*']}
+        onShouldStartLoadWithRequest={onGameNavigation}
       />
 
       {loading ? (
