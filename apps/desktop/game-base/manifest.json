@@ -10,7 +10,7 @@
     },
     "index.html": {
       "filename": "index.html",
-      "version": "1.13.0"
+      "version": "1.14.0"
     },
     "platform.js": {
       "filename": "platform.js",
@@ -19,14 +19,6 @@
     "regex.json": {
       "filename": "regex.json",
       "version": "1.12.0"
-    },
-    "keymaster2.js": {
-      "filename": "keymaster2.js",
-      "version": "1.0.1"
-    },
-    "icon.png": {
-      "filename": "icon.png",
-      "version": "1.0.0"
     }
   }
 }

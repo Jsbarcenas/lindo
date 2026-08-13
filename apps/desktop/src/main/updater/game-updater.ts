@@ -203,10 +203,22 @@ export class GameUpdater {
     }
   }
 
+  /**
+   * Borra lo que ha salido del manifiesto.
+   *
+   * El nombre de fichero se resuelve contra el manifiesto **remoto**, y una
+   * entrada marcada como retirada es precisamente la que ya no está ahí: leerla
+   * lanzaba un TypeError y se llevaba por delante toda la actualización. Pasa a
+   * usar la clave, que en estos manifiestos es el propio nombre del fichero, y
+   * el manifiesto solo aporta el nombre cuando además existe.
+   *
+   * Se descubrió al retirar `keymaster2.js`, que era el primer fichero que este
+   * proyecto quitaba desde que existe el updater.
+   */
   private _removeOldAssets(differences: DiffManifest, manifest: Manifest) {
     for (const key in differences) {
       if (differences[key] === -1) {
-        const filePath = GAME_PATH + manifest.files[key].filename
+        const filePath = GAME_PATH + (manifest.files[key]?.filename ?? key)
         const directoryPath = path.dirname(filePath)
 
         if (fs.existsSync(filePath)) {
