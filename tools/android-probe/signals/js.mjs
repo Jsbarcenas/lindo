@@ -49,6 +49,33 @@ const CORDOVA_PLUGINS = ['Keyboard', 'Yanap', 'browsertab', 'screenorientation']
  */
 const CORDOVA_PLUGINS_LEFT_ABSENT = ['Yanap', 'browsertab']
 
+/**
+ * Globals the official client installs that are deliberately not installed
+ * here: the bundle references every one of them, and a stub that answers
+ * without working replaces a fallback that currently does. `store` is on the
+ * list because a stub of it was tried and threw on its first chained call.
+ *
+ * The rule is now mechanical - anything the bundle mentions at all stays out -
+ * so this list is the count, not a set of judgements.
+ */
+const GLOBALS_LEFT_ABSENT = [
+  'wizAssets',
+  'Media',
+  'IonicDeeplink',
+  'store',
+  'Adjust',
+  'AdjustConfig',
+  'AdjustEvent',
+  'Connection',
+  'LaunchReview',
+  'MobileAccessibility',
+  'appAvailability',
+  'navigationbar',
+  'powerManagement',
+  'gamecenter',
+  'WizAssetsError'
+]
+
 /** fonts that ship with macOS and are absent from Android */
 const MACOS_ONLY_FONTS = ['Helvetica Neue', 'SF Pro Text', 'Lucida Grande', 'Geneva']
 /** speech voices macOS installs by default */
@@ -144,7 +171,9 @@ export const JS_SIGNALS = [
     run: (ctx) => {
       const collected = ctx.js.cordovaGlobals
       if (!collected) return verdict('js.cordova.globals', 'D', 'client', false, undefined, 'the official plugin globals')
-      const missing = collected.expected.filter((name) => !collected.present.includes(name))
+      const missing = collected.expected.filter(
+        (name) => !collected.present.includes(name) && !GLOBALS_LEFT_ABSENT.includes(name)
+      )
       return verdict(
         'js.cordova.globals',
         'D',

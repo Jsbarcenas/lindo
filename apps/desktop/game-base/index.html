@@ -53,7 +53,10 @@
             if (window.top !== window) {
                 window.top.installLindoPlatform =
                     window.top.installLindoPlatform || window.installLindoPlatform;
-                window.installLindoPlatform(window.top, androidProfile, { inputTraits: false });
+                window.installLindoPlatform(window.top, androidProfile, {
+                    inputTraits: false,
+                    cordovaSurface: false
+                });
             }
         } catch (e) {
             top.console.log("lindo: could not install platform on the parent", e);

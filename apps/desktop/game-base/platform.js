@@ -156,6 +156,63 @@
   }
 
   /**
+   * The globals the official client's Cordova plugins install.
+   *
+   * Only the ones the bundle never mentions are installed. That rule replaced a
+   * judgement call about which stubs would be "harmless", and it did so because
+   * the judgement was wrong: `store` looked unused and has 86 references, so a
+   * stub of it threw on the first chained call and took the game down. The
+   * detection behind that judgement was the flawed part - it only matched
+   * `window.X` and bare `X`, while webpack hands these around as `t.store`.
+   *
+   * So: zero references in build/script.js, or it does not go in. Everything
+   * else stays absent, whatever a checker makes of that. A missing global costs
+   * one signal; a stub in a path the game actually walks costs the game.
+   *
+   * Refresh the list against a new bundle with a plain word-boundary count -
+   * `\bNAME\b` - not a property-access pattern.
+   */
+  var installCordovaSurface = function (win) {
+    var ok = function (success) {
+      if (typeof success === 'function') success()
+    }
+
+    var surface = {
+      StatusBar: {
+        isVisible: false,
+        hide: function () {}, show: function () {},
+        styleDefault: function () {}, styleLightContent: function () {},
+        backgroundColorByHexString: function () {}, overlaysWebView: function () {}
+      },
+      AppSettings: { open: function (setting, page, success) { ok(success) } },
+      MobileAccessibilityNotifications: {
+        ANNOUNCEMENT: 'announcement', SCREEN_CHANGED: 'screenChanged'
+      },
+      LocalFileSystem: { TEMPORARY: 0, PERSISTENT: 1 },
+      Flags: function Flags() {},
+      Metadata: function Metadata() {},
+      FileUploadOptions: function FileUploadOptions() {},
+      FileUploadResult: function FileUploadResult() {},
+      FileError: {
+        NOT_FOUND_ERR: 1, SECURITY_ERR: 2, ABORT_ERR: 3, NOT_READABLE_ERR: 4, ENCODING_ERR: 5,
+        NO_MODIFICATION_ALLOWED_ERR: 6, INVALID_STATE_ERR: 7, SYNTAX_ERR: 8, INVALID_MODIFICATION_ERR: 9,
+        QUOTA_EXCEEDED_ERR: 10, TYPE_MISMATCH_ERR: 11, PATH_EXISTS_ERR: 12
+      }
+    }
+
+    for (var name in surface) {
+      // never shadow something the engine already provides: File, FileReader,
+      // ProgressEvent and friends are native here, and Cordova overriding them
+      // on a phone is not a reason to override them on top of a real one
+      if (typeof win[name] === 'undefined') {
+        try {
+          win[name] = surface[name]
+        } catch (error) {}
+      }
+    }
+  }
+
+  /**
    * @param options.inputTraits set false to leave touch, pointer media queries
    *   and orientation alone. The renderer that hosts the game frame is reachable
    *   from inside it (`top.navigator`), so it needs the same identity - but it
@@ -354,6 +411,8 @@
       // would match the claimed device, but the game lays out its interface from
       // them while the real window is desktop-sized, and a 412x915 screen under a
       // 1280x720 window breaks the UI.
+
+      if (!(options && options.cordovaSurface === false)) installCordovaSurface(win)
 
       installFrameHook(win, profile)
       installWorker(win, profile)
