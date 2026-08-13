@@ -40,6 +40,39 @@ const findSdk = () => {
 const run = (command, args, options = {}) =>
   execFileSync(command, args, { stdio: 'inherit', cwd: APP, ...options })
 
+/**
+ * Un release tiene que traer un origen al que cualquier teléfono llegue.
+ *
+ * Sin `EXPO_PUBLIC_LINDO_URL` el APK apunta a `http://localhost:5173`, que es el
+ * servidor de desarrollo del anfitrión y solo responde con `adb reverse`. En el
+ * emulador de al lado parece que funciona; en cuanto el APK sale de esta máquina
+ * se queda en "Cargando" para siempre. Eso no es un release, así que aquí se
+ * para en vez de entregar un APK roto.
+ *
+ * `--local` es la excepción explícita: el APK de pruebas que sí depende del
+ * dev server, que es el que se usa para verificar en el emulador.
+ */
+const local = process.argv.includes('--local')
+if (!process.env.EXPO_PUBLIC_LINDO_URL && !local) {
+  console.error(
+    '\nFalta EXPO_PUBLIC_LINDO_URL.\n\n' +
+      'Un APK de release sirve el cliente desde ese origen, y tiene que ser\n' +
+      'alcanzable desde cualquier dispositivo - o sea, https público. El repo ya\n' +
+      'trae listos `vercel.json` y `Dockerfile`/`railway.json` para desplegar\n' +
+      '`apps/lindo-web`.\n\n' +
+      '  EXPO_PUBLIC_LINDO_URL=https://tu-despliegue pnpm --filter lindo-mobile build:android\n\n' +
+      'Para el APK de pruebas contra el dev server (necesita adb reverse):\n\n' +
+      '  pnpm --filter lindo-mobile build:android -- --local\n'
+  )
+  process.exit(2)
+}
+
+if (local) {
+  console.warn('\n  APK local: apunta a http://localhost:5173 y necesita `adb reverse tcp:5173 tcp:5173`.\n')
+} else {
+  console.log(`==> cliente: ${process.env.EXPO_PUBLIC_LINDO_URL}`)
+}
+
 const sdk = findSdk()
 if (!sdk || !fs.existsSync(sdk)) {
   console.error(
@@ -47,21 +80,6 @@ if (!sdk || !fs.existsSync(sdk)) {
       'Instálalo desde Android Studio o apunta ANDROID_HOME a donde esté.'
   )
   process.exit(2)
-}
-
-/**
- * Sin URL, el APK apunta al servidor de desarrollo del anfitrión, que solo
- * existe si hay `adb reverse`. Se carga porque `plugins/with-loopback-cleartext`
- * exceptúa el loopback del bloqueo de http en claro de release; en un teléfono
- * sin esa redirección no hay nada escuchando ahí y la pantalla queda vacía.
- */
-if (!process.env.EXPO_PUBLIC_LINDO_URL) {
-  console.warn(
-    '\n  Aviso: sin EXPO_PUBLIC_LINDO_URL el APK apunta a http://localhost:5173,\n' +
-      '  que solo responde con `adb reverse tcp:5173 tcp:5173` y el dev server en marcha.\n' +
-      '  Para un APK autónomo:\n' +
-      '    EXPO_PUBLIC_LINDO_URL=https://tu-despliegue pnpm --filter lindo-mobile build:android\n'
-  )
 }
 
 console.log('==> prebuild')
