@@ -50,14 +50,16 @@ if (!sdk || !fs.existsSync(sdk)) {
 }
 
 /**
- * En release Android prohíbe el tráfico en claro, así que un APK que apunte al
- * servidor de desarrollo se instala y luego no carga nada. Vale más decirlo aquí
- * que dejar que se descubra con el APK ya en el teléfono.
+ * Sin URL, el APK apunta al servidor de desarrollo del anfitrión, que solo
+ * existe si hay `adb reverse`. Se carga porque `plugins/with-loopback-cleartext`
+ * exceptúa el loopback del bloqueo de http en claro de release; en un teléfono
+ * sin esa redirección no hay nada escuchando ahí y la pantalla queda vacía.
  */
 if (!process.env.EXPO_PUBLIC_LINDO_URL) {
   console.warn(
-    '\n  Aviso: sin EXPO_PUBLIC_LINDO_URL el APK apuntará a http://localhost:5173,\n' +
-      '  y una build de release no admite http en claro. Para un APK que sirva:\n' +
+    '\n  Aviso: sin EXPO_PUBLIC_LINDO_URL el APK apunta a http://localhost:5173,\n' +
+      '  que solo responde con `adb reverse tcp:5173 tcp:5173` y el dev server en marcha.\n' +
+      '  Para un APK autónomo:\n' +
       '    EXPO_PUBLIC_LINDO_URL=https://tu-despliegue pnpm --filter lindo-mobile build:android\n'
   )
 }
