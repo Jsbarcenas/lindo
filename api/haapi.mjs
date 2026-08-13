@@ -17,27 +17,41 @@
  * `[...path]`. Un comodín de ese estilo es la forma idiomática, pero exige que
  * la plataforma reconozca esa sintaxis fuera de Next.js, y eso es justo lo que
  * no se puede comprobar sin desplegar. Un fichero plano no depende de nada.
+ *
+ * Está comprobado que la `apikey` llega hasta aquí, y aun así Ankama contesta
+ * 403 con una clave que directamente da 200. Este fichero prueba una de las dos
+ * explicaciones que quedan - reenviar de menos - mientras `haapi-node.mjs`
+ * sigue reenviando de más. Si este responde y aquel no, era eso; si fallan los
+ * dos, lo que sobra es la IP de salida y Vercel no vale para este proxy.
  */
 export const config = { runtime: 'edge' }
 
 const UPSTREAM = 'https://haapi.ankama.com'
 
 /**
- * Hop-by-hop, más lo que añade la propia plataforma. `accept-encoding` se cae
- * porque `fetch` ya descomprime la respuesta: reenviarlo llevaría a anunciar
- * una codificación que el cuerpo devuelto ya no tiene.
+ * Lista blanca, no lista negra.
+ *
+ * Descartando se escapan cosas: la plataforma añade `forwarded`, `x-real-ip`,
+ * `logs-url` y `x-invocation-id`, y las dos primeras anuncian a gritos que esto
+ * viene por un proxy - además de mandarle a Ankama la IP de quien juega, que no
+ * es asunto suyo. Enumerando lo que sí pasa, lo que la plataforma invente
+ * mañana no se cuela.
+ *
+ * `accept-encoding` no está a propósito: `fetch` ya descomprime la respuesta, y
+ * reenviarlo llevaría a anunciar una codificación que el cuerpo ya no tiene.
  */
-const DROP = new Set([
-  'host',
-  'connection',
-  'content-length',
-  'transfer-encoding',
-  'keep-alive',
-  'upgrade',
-  'accept-encoding'
+const FORWARD = new Set([
+  'apikey',
+  'authorization',
+  'accept',
+  'accept-language',
+  'content-type',
+  'cookie',
+  'user-agent',
+  'x-requested-with'
 ])
 
-const forwardable = (name) => !DROP.has(name) && !name.startsWith('x-vercel-') && !name.startsWith('x-forwarded-')
+const forwardable = (name) => FORWARD.has(name)
 
 export default async function handler(request) {
   const url = new URL(request.url)
