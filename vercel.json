@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/haapi/:path*",
-      "destination": "https://haapi.ankama.com/:path*"
+      "destination": "/api/haapi/:path*"
     }
   ],
   "headers": [
