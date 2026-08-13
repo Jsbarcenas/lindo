@@ -3,18 +3,16 @@
  */
 
 /**
- * El build web, servido a la app.
+ * El cliente, cuando viene de fuera.
  *
- * Por defecto apunta al servidor de desarrollo del anfitrión a través de
- * `adb reverse tcp:5173 tcp:5173`, y eso no es un atajo: `localhost` es un
- * origen seguro y `10.0.2.2` no lo es. Sin contexto seguro no hay service
- * worker que sirva el shell, ni `crypto.subtle` para la multicuenta, ni
- * `navigator.userAgentData`. El despliegue real se pasa por entorno.
+ * Si no está definido, el shell va empaquetado dentro del APK y lo sirve
+ * `modules/shell-assets` en loopback: así el APK funciona en cualquier teléfono
+ * sin depender de ningún servidor nuestro. El juego sigue necesitando internet
+ * para lo suyo - el bundle de Ankama se descarga en cada arranque desde su CDN.
+ *
+ * `build:android --local` lo apunta al servidor de desarrollo del anfitrión.
  */
-export const CLIENT_URL = process.env.EXPO_PUBLIC_LINDO_URL ?? 'http://localhost:5173'
-
-/** el origen del cliente: lo único que su WebView tiene permitido navegar */
-export const CLIENT_ORIGIN = new URL(CLIENT_URL).origin
+export const REMOTE_CLIENT_URL = process.env.EXPO_PUBLIC_LINDO_URL
 
 /**
  * Lo que Cordova llama `AppendUserAgent`, que es lo que hace el cliente real.

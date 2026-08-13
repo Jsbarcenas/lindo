@@ -110,3 +110,6 @@ apps/lindo-web/.game-cache/
 # salida de expo prebuild: se regenera desde app.json, no se versiona
 apps/lindo-mobile/android
 apps/lindo-mobile/ios
+
+# salida de compilación del módulo nativo local
+apps/lindo-mobile/modules/*/android/build/

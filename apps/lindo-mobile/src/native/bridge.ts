@@ -73,6 +73,23 @@ export const nativePrelude = (info: NativeInfo): string => `
   // el UA real del WebView, que solo se conoce desde dentro. Hace falta para
   // poder ofrecer una identidad de navegador coherente si el login la necesita
   window.lindoNative.postMessage({ type: 'ua', value: navigator.userAgent });
+
+  // Una build de release no expone DevTools, así que sin esto un fallo dentro
+  // de la página es una pantalla negra y nada más. Con esto sale por logcat.
+  var report = function (text) {
+    try { window.lindoNative.postMessage({ type: 'log', value: String(text).slice(0, 500) }) } catch (e) {}
+  };
+  window.addEventListener('error', function (event) {
+    report('error: ' + event.message + ' @ ' + event.filename + ':' + event.lineno);
+  });
+  window.addEventListener('unhandledrejection', function (event) {
+    report('rejection: ' + ((event.reason && event.reason.message) || event.reason));
+  });
+  var nativeError = console.error;
+  console.error = function () {
+    report('console.error: ' + Array.prototype.join.call(arguments, ' '));
+    return nativeError.apply(console, arguments);
+  };
   true;
 `
 
@@ -124,14 +141,18 @@ export const authBlockedProbe = `
 `
 
 /** lo que las páginas mandan hacia aquí */
-export type WebMessage = { type: 'auth:open'; url: string } | { type: 'auth:blocked' } | { type: 'ua'; value: string }
+export type WebMessage =
+  | { type: 'auth:open'; url: string }
+  | { type: 'auth:blocked' }
+  | { type: 'ua'; value: string }
+  | { type: 'log'; value: string }
 
 export const parseWebMessage = (raw: string): WebMessage | undefined => {
   try {
     const value = JSON.parse(raw) as WebMessage
     if (!value || typeof value.type !== 'string') return undefined
     if (value.type === 'auth:open') return typeof value.url === 'string' ? value : undefined
-    if (value.type === 'ua') return typeof value.value === 'string' ? value : undefined
+    if (value.type === 'ua' || value.type === 'log') return typeof value.value === 'string' ? value : undefined
     return value.type === 'auth:blocked' ? value : undefined
   } catch {
     return undefined

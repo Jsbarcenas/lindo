@@ -41,36 +41,25 @@ const run = (command, args, options = {}) =>
   execFileSync(command, args, { stdio: 'inherit', cwd: APP, ...options })
 
 /**
- * Un release tiene que traer un origen al que cualquier teléfono llegue.
+ * De dónde sale el cliente en este APK.
  *
- * Sin `EXPO_PUBLIC_LINDO_URL` el APK apunta a `http://localhost:5173`, que es el
- * servidor de desarrollo del anfitrión y solo responde con `adb reverse`. En el
- * emulador de al lado parece que funciona; en cuanto el APK sale de esta máquina
- * se queda en "Cargando" para siempre. Eso no es un release, así que aquí se
- * para en vez de entregar un APK roto.
+ * Por defecto, de dentro: se compila `apps/lindo-web` y se copia a los assets,
+ * y `modules/shell-assets` lo sirve sobre un dominio https reservado. Así el APK
+ * funciona en cualquier teléfono sin servidor de por medio.
  *
- * `--local` es la excepción explícita: el APK de pruebas que sí depende del
- * dev server, que es el que se usa para verificar en el emulador.
+ * `EXPO_PUBLIC_LINDO_URL` lo apunta a un despliegue propio, y `--local` al
+ * servidor de desarrollo de esta máquina, que es el APK con el que se verifica
+ * en el emulador.
  */
 const local = process.argv.includes('--local')
-if (!process.env.EXPO_PUBLIC_LINDO_URL && !local) {
-  console.error(
-    '\nFalta EXPO_PUBLIC_LINDO_URL.\n\n' +
-      'Un APK de release sirve el cliente desde ese origen, y tiene que ser\n' +
-      'alcanzable desde cualquier dispositivo - o sea, https público. El repo ya\n' +
-      'trae listos `vercel.json` y `Dockerfile`/`railway.json` para desplegar\n' +
-      '`apps/lindo-web`.\n\n' +
-      '  EXPO_PUBLIC_LINDO_URL=https://tu-despliegue pnpm --filter lindo-mobile build:android\n\n' +
-      'Para el APK de pruebas contra el dev server (necesita adb reverse):\n\n' +
-      '  pnpm --filter lindo-mobile build:android -- --local\n'
-  )
-  process.exit(2)
-}
-
 if (local) {
+  // el APK de pruebas, que sí depende del servidor de desarrollo del anfitrión
+  process.env.EXPO_PUBLIC_LINDO_URL = 'http://localhost:5173'
   console.warn('\n  APK local: apunta a http://localhost:5173 y necesita `adb reverse tcp:5173 tcp:5173`.\n')
+} else if (process.env.EXPO_PUBLIC_LINDO_URL) {
+  console.log(`==> cliente: ${process.env.EXPO_PUBLIC_LINDO_URL} (remoto)`)
 } else {
-  console.log(`==> cliente: ${process.env.EXPO_PUBLIC_LINDO_URL}`)
+  console.log('==> cliente: empaquetado en el APK')
 }
 
 const sdk = findSdk()
@@ -83,11 +72,46 @@ if (!sdk || !fs.existsSync(sdk)) {
 }
 
 console.log('==> prebuild')
-run('npx', ['expo', 'prebuild', '--platform', 'android', '--no-install'], {
-  env: { ...process.env, ANDROID_HOME: sdk }
-})
+/**
+ * El prebuild empieza borrando `android/`, y a veces no puede: si quedó un
+ * demonio de Gradle con ficheros abiertos, falla con ENOTEMPTY y se lleva el
+ * build entero. Borrarlo aquí y reintentar sale más barato que descubrirlo.
+ */
+try {
+  run('npx', ['expo', 'prebuild', '--platform', 'android', '--no-install'], {
+    env: { ...process.env, ANDROID_HOME: sdk }
+  })
+} catch (error) {
+  console.warn('==> prebuild falló, limpiando android/ y reintentando')
+  fs.rmSync(ANDROID, { recursive: true, force: true })
+  run('npx', ['expo', 'prebuild', '--platform', 'android', '--no-install'], {
+    env: { ...process.env, ANDROID_HOME: sdk }
+  })
+}
 
 fs.writeFileSync(path.join(ANDROID, 'local.properties'), `sdk.dir=${sdk}\n`)
+
+/**
+ * El shell, dentro del APK.
+ *
+ * Se compila y se copia después del prebuild porque el prebuild regenera
+ * `android/` entero, assets incluidos. Con una URL remota no hace falta: el
+ * cliente vendrá de ahí y meterlo además solo engordaría el APK.
+ */
+if (!process.env.EXPO_PUBLIC_LINDO_URL) {
+  console.log('==> compilando apps/lindo-web')
+  run('pnpm', ['--filter', 'lindo-web', 'build'], { cwd: path.join(APP, '..', '..') })
+
+  const web = path.join(APP, '..', 'lindo-web', 'dist')
+  if (!fs.existsSync(web)) {
+    console.error(`No hay build web en ${web}`)
+    process.exit(1)
+  }
+  const shell = path.join(ANDROID, 'app', 'src', 'main', 'assets', 'shell')
+  fs.rmSync(shell, { recursive: true, force: true })
+  fs.cpSync(web, shell, { recursive: true })
+  console.log(`==> shell empaquetado desde ${path.relative(process.cwd(), web)}`)
+}
 
 console.log('==> assembleRelease')
 run(path.join(ANDROID, 'gradlew'), ['-p', ANDROID, 'assembleRelease'], {

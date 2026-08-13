@@ -14,7 +14,8 @@ import {
 } from 'react-native'
 import { WebView, type WebViewNavigation } from 'react-native-webview'
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes'
-import { AUTH_UA, CLIENT_ORIGIN, CLIENT_UA_SUFFIX, CLIENT_URL } from '../native/config'
+import ShellAssets from '../../modules/shell-assets'
+import { AUTH_UA, CLIENT_UA_SUFFIX, REMOTE_CLIENT_URL } from '../native/config'
 import {
   authBlockedProbe,
   browserUserAgent,
@@ -62,16 +63,18 @@ export default function Index() {
   const game = useRef<WebView>(null)
   const [authUrl, setAuthUrl] = useState<string | undefined>()
   const [loading, setLoading] = useState(true)
+  /**
+   * De dónde se carga el cliente, resuelto al arrancar.
+   *
+   * Cuando viene empaquetado, el origen no se sabe hasta que el servidor elige
+   * puerto, así que no puede ser una constante. Hasta entonces el WebView no
+   * tiene nada que cargar.
+   */
+  const [clientUrl, setClientUrl] = useState<string | undefined>(REMOTE_CLIENT_URL)
+
   /** el UA real del WebView, que solo se conoce desde dentro de una página */
   const [deviceUserAgent, setDeviceUserAgent] = useState<string | undefined>()
-  /**
-   * Con qué identidad se está intentando el login.
-   *
-   * Empieza por la del cliente oficial. Si Google contesta que el navegador no
-   * es seguro, pasa a `browser` - la del propio aparato sin marcas de WebView -
-   * y se reintenta una sola vez. Cambiar esta prop remonta el WebView, que es
-   * justo lo que hace falta para que se aplique.
-   */
+
   const [authIdentity, setAuthIdentity] = useState<'client' | 'browser'>('client')
 
   const authUserAgent = authIdentity === 'browser' && deviceUserAgent ? browserUserAgent(deviceUserAgent) : AUTH_UA
@@ -109,6 +112,13 @@ export default function Index() {
   }, [])
 
   useEffect(() => {
+    if (clientUrl) return
+    ShellAssets.start()
+      .then(setClientUrl)
+      .catch((error: Error) => console.error('lindo: no se pudo servir el cliente desde el APK', error))
+  }, [clientUrl])
+
+  useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', onBack)
     return () => subscription.remove()
   }, [onBack])
@@ -121,11 +131,14 @@ export default function Index() {
    * las noticias de Ankama se lleva el cliente entero por delante y no hay forma
    * de volver. Lo de fuera se abre fuera; lo de casa sigue su camino.
    */
-  const onGameNavigation = useCallback((request: ShouldStartLoadRequest) => {
-    if (request.url.startsWith(CLIENT_ORIGIN)) return true
-    detach(Linking.openURL(request.url))
-    return false
-  }, [])
+  const onGameNavigation = useCallback(
+    (request: ShouldStartLoadRequest) => {
+      if (clientUrl && request.url.startsWith(new URL(clientUrl).origin)) return true
+      detach(Linking.openURL(request.url))
+      return false
+    },
+    [clientUrl]
+  )
 
   /**
    * El login, en un WebView nuestro en vez de en una pestaña que no podemos
@@ -175,40 +188,47 @@ export default function Index() {
   return (
     <View style={styles.root}>
       <StatusBar hidden />
-      <WebView
-        ref={game}
-        source={{ uri: CLIENT_URL }}
-        style={styles.fill}
-        // el equivalente de `AppendUserAgent`: el UA sale idéntico al del cliente real
-        applicationNameForUserAgent={CLIENT_UA_SUFFIX}
-        injectedJavaScriptBeforeContentLoaded={prelude}
-        onMessage={(event) => {
-          const message = parseWebMessage(event.nativeEvent.data)
-          if (message?.type === 'ua') setDeviceUserAgent(message.value)
-          if (message?.type === 'auth:open') {
-            setAuthIdentity('client')
-            setAuthUrl(message.url)
-          }
-        }}
-        onLoadEnd={() => setLoading(false)}
-        // sin esto `window.open` abre una ventana que no controlamos y el login
-        // se pierde igual que en el navegador
-        setSupportMultipleWindows={false}
-        javaScriptEnabled
-        domStorageEnabled
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        // el juego dibuja en canvas y WebGL
-        androidLayerType='hardware'
-        // la restricción dura: contexto seguro o nada
-        originWhitelist={['https://*', 'http://localhost*']}
-        onShouldStartLoadWithRequest={onGameNavigation}
-      />
+      {clientUrl ? (
+        <WebView
+          ref={game}
+          source={{ uri: clientUrl }}
+          style={styles.fill}
+          // el equivalente de `AppendUserAgent`: el UA sale idéntico al del cliente real
+          applicationNameForUserAgent={CLIENT_UA_SUFFIX}
+          injectedJavaScriptBeforeContentLoaded={prelude}
+          onMessage={(event) => {
+            const message = parseWebMessage(event.nativeEvent.data)
+            if (message?.type === 'log') console.warn('lindo[web]', message.value)
+            if (message?.type === 'ua') setDeviceUserAgent(message.value)
+            if (message?.type === 'auth:open') {
+              setAuthIdentity('client')
+              setAuthUrl(message.url)
+            }
+          }}
+          onLoadEnd={() => setLoading(false)}
+          onError={(event) => console.warn('lindo[webview] error', JSON.stringify(event.nativeEvent))}
+          onHttpError={(event) => console.warn('lindo[webview] http', JSON.stringify(event.nativeEvent))}
+          // sin esto `window.open` abre una ventana que no controlamos y el login
+          // se pierde igual que en el navegador
+          setSupportMultipleWindows={false}
+          javaScriptEnabled
+          domStorageEnabled
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          // el juego dibuja en canvas y WebGL
+          androidLayerType='hardware'
+          // la restricción dura: contexto seguro o nada
+          originWhitelist={['https://*', 'http://127.0.0.1*', 'http://localhost*']}
+          onShouldStartLoadWithRequest={onGameNavigation}
+        />
+      ) : null}
 
-      {loading ? (
+      {loading || !clientUrl ? (
         <View style={[styles.centre, StyleSheet.absoluteFill]}>
           <ActivityIndicator color='#7cb342' />
-          <Text style={styles.message}>Cargando el cliente desde {CLIENT_URL}</Text>
+          <Text style={styles.message}>
+            {clientUrl ? `Cargando el cliente desde ${clientUrl}` : 'Preparando el cliente'}
+          </Text>
         </View>
       ) : null}
 
