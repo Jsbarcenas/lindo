@@ -52,7 +52,34 @@
             androidProfile.userAgent += " DofusTouch Client " + window.top.appVersion;
         }
 
-        window.installLindoPlatform(window, androidProfile);
+        // ---------------------------------------------------------------
+        // Dentro de la app: el aparato responde solo.
+        //
+        // `apps/lindo-mobile` publica lo que dice `expo-device` antes de que
+        // cargue el documento. Cuando eso existe, el perfil sintético deja de
+        // ser la fuente y pasa a ser el respaldo: lo que se instala describe el
+        // teléfono real, que es además el que emite las cabeceras. Inventar aquí
+        // un SM-A546B contradiría su propio User-Agent.
+        //
+        // La GPU es la excepción, y solo en emulador: ahí no se reporta una GPU
+        // de Android sino la del anfitrión - "Apple M4 Max" en un Mac -, que no
+        // es una respuesta honesta sino otra mentira, y peor.
+        // ---------------------------------------------------------------
+        var nativeInfo = window.top.lindoNative;
+        if (nativeInfo && nativeInfo.device) {
+            androidProfile.androidVersion = nativeInfo.device.version;
+            androidProfile.model = nativeInfo.device.model;
+            androidProfile.manufacturer = nativeInfo.device.manufacturer;
+            androidProfile.uuid = nativeInfo.device.uuid;
+            androidProfile.cordova = nativeInfo.device.cordova;
+            androidProfile.isVirtual = nativeInfo.device.isVirtual;
+        }
+
+        var platformOptions = nativeInfo
+            ? { nativeAndroid: true, spoofGpu: nativeInfo.isEmulator }
+            : undefined;
+
+        window.installLindoPlatform(window, androidProfile, platformOptions);
 
         // The renderer hosting this frame is reachable from inside it - the
         // bundle itself uses `top.console` and `window.top.FileLoggerLib - so
@@ -65,7 +92,9 @@
                     window.top.installLindoPlatform || window.installLindoPlatform;
                 window.installLindoPlatform(window.top, androidProfile, {
                     inputTraits: false,
-                    cordovaSurface: false
+                    cordovaSurface: false,
+                    nativeAndroid: !!nativeInfo,
+                    spoofGpu: !!nativeInfo && nativeInfo.isEmulator
                 });
             }
         } catch (e) {

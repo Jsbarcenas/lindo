@@ -188,7 +188,47 @@ export const collectCodeAfterRedirect = async (): Promise<string | undefined> =>
   return result.code
 }
 
+/**
+ * La cáscara nativa, cuando la hay.
+ *
+ * `apps/lindo-mobile` la instala antes de que cargue el documento, así que si
+ * este objeto existe la página corre dentro de un WebView que nos pertenece -
+ * y eso cambia lo único que no se podía resolver en un navegador.
+ */
+interface NativeShell {
+  postMessage: (message: { type: 'auth:open'; url: string }) => void
+}
+
+type NativeWindow = Window & {
+  lindoNative?: NativeShell
+  lindoNativeAuthResolve?: (result: WebAuthResult) => void
+}
+
+export const nativeShell = (): NativeShell | undefined => (window as NativeWindow).lindoNative
+
+/**
+ * El login dentro de la app: sin copiar nada.
+ *
+ * El `code` sigue aterrizando en un dominio de Ankama, exactamente igual que en
+ * el navegador. La diferencia es de quién es la ventana: allí es una pestaña que
+ * este origen no puede leer, y aquí es un WebView del que la cáscara ve cada
+ * navegación. Así que el paso manual desaparece, no porque hayamos rodeado la
+ * restricción del navegador, sino porque fuera de él no existe.
+ */
+const openWebAuthNative = (shell: NativeShell, url: string): Promise<WebAuthResult> =>
+  new Promise((resolve) => {
+    const host = window as NativeWindow
+    host.lindoNativeAuthResolve = (result) => {
+      delete host.lindoNativeAuthResolve
+      resolve(result)
+    }
+    shell.postMessage({ type: 'auth:open', url })
+  })
+
 export const openWebAuthInPopup = async (url: string): Promise<WebAuthResult> => {
+  const shell = nativeShell()
+  if (shell) return openWebAuthNative(shell, url)
+
   const popup = window.open(url, 'lindo-auth', 'width=520,height=720')
   if (!popup) {
     // The game reaches this through its own promise chain, so the click that

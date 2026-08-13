@@ -106,3 +106,7 @@ expo-env.d.ts
 # reproducible con `pnpm --filter lindo-web fetch-game`
 apps/lindo-web/public/game/
 apps/lindo-web/.game-cache/
+
+# salida de expo prebuild: se regenera desde app.json, no se versiona
+apps/lindo-mobile/android
+apps/lindo-mobile/ios
