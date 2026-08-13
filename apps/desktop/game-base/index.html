@@ -131,6 +131,21 @@
             registerDevice: function() {}
         };
 
+        // Which login flow the patched bundle takes.
+        //
+        // Ankama ships two: a deep link to dofustouch://authorized, which only
+        // an app that owns the scheme can catch, and a plain browser redirect
+        // that comes back with ?code= in the URL. The Electron build intercepts
+        // the first one; a page cannot, so the browser build has to use the
+        // second - and the redirect has to land on this origin rather than
+        // Ankama's, or the code arrives somewhere we cannot read it.
+        //
+        // The web host sets these two on its own window; Electron never does, so
+        // it keeps the bridge. `lindoOpenWebAuth` is no good as the
+        // discriminator because GameScreen installs it in both builds, and
+        // `window.top.platform` is no good either - nothing has ever set it.
+        window.lindoBrowserAuth = window.top.lindoBrowserAuth === true;
+
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {

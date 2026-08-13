@@ -10,7 +10,7 @@
     },
     "index.html": {
       "filename": "index.html",
-      "version": "1.7.0"
+      "version": "1.10.0"
     },
     "platform.js": {
       "filename": "platform.js",
@@ -18,7 +18,7 @@
     },
     "regex.json": {
       "filename": "regex.json",
-      "version": "1.9.0"
+      "version": "1.12.0"
     },
     "keymaster2.js": {
       "filename": "keymaster2.js",

@@ -14,6 +14,16 @@ export * from './profile'
 export const installWebLindoAPI = async (): Promise<void> => {
   window.lindoAPI = await createWebLindoAPI()
 
+  /**
+   * Makes the patched bundle ask Ankama for its browser redirect instead of the
+   * `dofustouch://` deep link, which only an app owning the scheme can catch.
+   *
+   * `game-base/index.html` copies this into the game frame. Nothing sets it on
+   * the desktop, which is how that build keeps asking for the deep link.
+   */
+  const host = window as Window & { lindoBrowserAuth?: boolean }
+  host.lindoBrowserAuth = true
+
   // Navigator asserts this is present with a non-null assertion. There is no
   // custom title bar in a browser, so it reports no height and the layout
   // resolves to the full viewport.

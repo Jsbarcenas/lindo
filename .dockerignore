@@ -1,0 +1,15 @@
+# Everything the image builds for itself or has no use for.
+node_modules
+**/node_modules
+**/dist
+**/release
+**/.turbo
+**/.vite
+apps/lindo-web/public/game
+apps/lindo-web/.game-cache
+apps/lindo-mobile/.expo
+tools/android-probe/runs
+.git
+.idea
+.vscode
+screenshots

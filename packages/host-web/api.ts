@@ -117,10 +117,91 @@ const muteEveryFrame = (value: boolean) => {
   })
 }
 
+/**
+ * Ankama's login, as far as a browser can take it.
+ *
+ * The desktop opens the login in a window it owns and catches the redirect to
+ * `dofustouch://authorized`. Neither half of that is available here: a page
+ * cannot register a custom scheme, and it cannot ask for its own URL as the
+ * redirect either - Ankama validates `redirect_uri` against what is registered
+ * for the client and answers with an error page for anything else. Pointing it
+ * at this origin was tried and rejected; pointing it at Ankama's own registered
+ * redirect renders the login form normally.
+ *
+ * So the login runs in a popup and ends on Ankama's page with `?code=` in its
+ * URL - readable by the person looking at it, not by this origin. The last step
+ * is theirs. It is one paste, and it is the only part of the desktop flow that
+ * does not survive the move to a browser.
+ */
+const RETURNING_FROM_AUTH = 'lindo:returning-from-auth'
+
+/**
+ * Asks for the code once, on the way back from a login that took over the tab.
+ *
+ * Called during install, before anything renders, so the prompt is the first
+ * thing seen after coming back rather than something that interrupts later.
+ */
+export const collectCodeAfterRedirect = (): string | undefined => {
+  if (window.sessionStorage.getItem(RETURNING_FROM_AUTH) !== '1') return undefined
+  window.sessionStorage.removeItem(RETURNING_FROM_AUTH)
+  const answer = window.prompt(AUTH_PROMPT)
+  return answer ? extractCode(answer) : undefined
+}
+
+const AUTH_PROMPT = 'Pega aquí la URL a la que llegaste al terminar el login en Ankama.\nEs la que contiene "?code=".'
+
+const extractCode = (answer: string): string | undefined => {
+  const match = /[?&]code=([^&\s]+)/.exec(answer)?.[1]
+  const bare = /^[\w-]{8,}$/.test(answer.trim()) ? answer.trim() : undefined
+  const code = match ?? bare
+  return code ? decodeURIComponent(code) : undefined
+}
+
+const openWebAuthInPopup = async (url: string): Promise<WebAuthResult> => {
+  const popup = window.open(url, 'lindo-auth', 'width=520,height=720')
+  if (!popup) {
+    // The game reaches this through its own promise chain, so the click that
+    // started it is no longer the current task and the popup can be blocked.
+    // Taking over this window instead is not a downgrade: the store lives in
+    // IndexedDB and survives the trip, and the login page has to be top level
+    // anyway - its challenge fails when framed.
+    window.sessionStorage.setItem(RETURNING_FROM_AUTH, '1')
+    window.location.href = url
+    return { cancelled: true }
+  }
+
+  // resolves when the person closes the popup, which is the only signal this
+  // origin gets: everything the popup does after leaving here is cross-origin
+  await new Promise<void>((resolve) => {
+    const timer = window.setInterval(() => {
+      if (popup.closed) {
+        window.clearInterval(timer)
+        resolve()
+      }
+    }, 500)
+  })
+
+  const answer = window.prompt(AUTH_PROMPT)
+  if (!answer) return { cancelled: true }
+
+  const code = extractCode(answer)
+  if (!code) return { error: 'No encontré ningún "code" en lo que pegaste.' }
+  return { code }
+}
+
 export const createWebLindoAPI = async (): Promise<LindoAPI> => {
   await hydrate()
   const androidProfile = await createAndroidProfile()
   installHotkeys()
+
+  // If the login took over the tab, the code is collected on the way back and
+  // handed to the client the way it already expects: on its own URL. The
+  // browser branch of the web-auth patch sets the flag that makes initialize()
+  // read `?code=` off `window.location`, so nothing else has to be told.
+  const recovered = collectCodeAfterRedirect()
+  const gameSrc = recovered
+    ? `/game/index.html?delayed=true&code=${encodeURIComponent(recovered)}`
+    : '/game/index.html?delayed=true'
 
   // patches arriving from another tab are applied to the authoritative store
   subscribe('patch', (message) => {
@@ -161,7 +242,7 @@ export const createWebLindoAPI = async (): Promise<LindoAPI> => {
 
     // ---- context ----
     fetchGameContext: async (): Promise<GameContext> => ({
-      gameSrc: '/game/index.html?delayed=true',
+      gameSrc,
       characterImagesSrc: '/character-images/',
       changeLogSrc: '/CHANGELOG.md',
       windowId: 0,
@@ -283,13 +364,7 @@ export const createWebLindoAPI = async (): Promise<LindoAPI> => {
     },
 
     // ---- web auth ----
-    openWebAuth: async (): Promise<WebAuthResult> => ({
-      // The desktop flow works by intercepting a navigation to
-      // dofustouch://authorized inside a window it owns. A page cannot observe a
-      // custom-scheme navigation in a window on another origin, so this cannot
-      // be reproduced. Classic account login is unaffected.
-      error: 'El login web no está disponible en la versión de navegador; usa cuenta y contraseña.'
-    }),
+    openWebAuth: async (url) => openWebAuthInPopup(url),
 
     logger
   }

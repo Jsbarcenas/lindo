@@ -101,7 +101,41 @@ Decisiones que conviene conocer:
 - **Los retratos de multicuenta** van a IndexedDB y los sirve un service worker
   en `/character-images/`, que es la URL que `CharacterCard` construye — así
   `packages/ui` no se toca.
-- **`openWebAuth` devuelve un error explicativo.** No es reproducible.
+- **`openWebAuth` funciona, con un paso manual.** Ver abajo.
+
+### El login web, medido
+
+El parche de `regex.json` sustituía las **tres** ramas de auth de Ankama por el
+puente de Electron, así que en navegador no había forma de entrar. Restaurado:
+ahora ambos builds usan el mismo puente y lo que cambia es el `redirect_uri`.
+
+Lo que se probó, en este orden:
+
+| Intento | Resultado |
+|---|---|
+| `redirect_uri` = nuestro origen (`localhost:5173`) | **"Une erreur est survenue"** — Ankama valida el redirect_uri |
+| Cargar la página de auth **dentro de la iframe** | `challenge.js: Max challenge attempts exceeded` |
+| `redirect_uri` registrado + ventana de nivel superior | **El formulario de Ankama Connect carga bien** |
+
+Así que el login es posible pero el `code` aterriza en
+`dt-proxy…/?code=` — el dominio de Ankama, ilegible desde nuestro origen. El
+host abre el login en un popup (o toma la pestaña si lo bloquean) y al volver
+pide pegar esa URL; extrae el `code` y lo inyecta en `gameSrc`, de donde el
+propio cliente lo lee con la bandera que el parche activa.
+
+**Un pegado manual es el único paso del flujo de escritorio que no sobrevive.**
+
+## Fase 5 · Despliegue en Railway — **hecha**
+
+`Dockerfile` multi-etapa y `railway.json` en la raíz. El build descarga y
+parchea el cliente, así que la imagen lleva dentro la versión contra la que se
+construyó. `server.mjs` sirve `dist/` sin dependencias.
+
+Caché: `immutable` solo para `/assets/**`, que Vite sí versiona por hash.
+`no-cache` para el resto — el shell del juego mantiene las mismas rutas entre
+despliegues y su contenido cambia cuando Ankama publica, así que un `max-age`
+largo ahí dejaría a la gente clavada en un cliente que ya no cuadra con los
+servidores.
 
 ## Fase 3 · La cáscara React — **hecha**
 
