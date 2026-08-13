@@ -348,6 +348,36 @@ WebView del login, **Google carga su pantalla de acceso sin rechistar** — medi
 en el emulador. No es un disfraz que nos inventemos: es el del cliente al que
 imitamos, para el mismo problema.
 
+### Cuando Google dice que el navegador no es seguro
+
+Pasa **a veces**, no siempre, y medido se ve por qué: el WebView del login manda
+tres cosas que se contradicen entre sí.
+
+| | |
+|---|---|
+| `User-Agent` | Safari de iPhone |
+| `X-Requested-With` | `com.lindo.mobile` — un paquete de Android |
+| `navigator.platform` | `Linux aarch64` |
+
+La comprobación de Google es por riesgo y cae a mitad del flujo, cuando toca
+volver a autenticarse. Probada su página de acceso con cuatro combinaciones de
+cabeceras —incluida un UA de WebView en crudo— **ninguna se bloqueó**, así que no
+hay evidencia de que cambiar la cadena de Ankama ayude, y sí buena razón para no
+apostar contra un cliente que está en producción.
+
+Así que la cadena de iPhone se queda de partida, y en su lugar **el bloqueo se
+detecta y se reintenta una vez**, con un UA derivado del propio WebView menos sus
+marcas (`Build/`, `; wv`, `Version/4.0`, sufijo de Cordova):
+
+```
+Mozilla/5.0 (Linux; Android 13; sdk_gphone64_arm64) AppleWebKit/537.36 \
+(KHTML, like Gecko) Chrome/109.0.5414.123 Mobile Safari/537.36
+```
+
+Mismo aparato, misma versión de Chrome, **misma pila TLS por debajo** — la única
+identidad que no puede contradecir a la conexión que la transporta. El flujo no
+cambia: la página se recarga y el login sigue.
+
 El pegado del portapapeles de `web-auth.ts` **no se usa aquí**, y no hay que
 borrarlo: es la ruta del navegador y sigue siendo correcta allí.
 
