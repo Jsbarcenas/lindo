@@ -15,7 +15,14 @@ import {
 import { WebView, type WebViewNavigation } from 'react-native-webview'
 import type { ShouldStartLoadRequest } from 'react-native-webview/lib/WebViewTypes'
 import { AUTH_UA, CLIENT_ORIGIN, CLIENT_UA_SUFFIX, CLIENT_URL } from '../native/config'
-import { collectNativeInfo, nativePrelude, parseWebMessage, resolveAuth } from '../native/bridge'
+import {
+  authBlockedProbe,
+  browserUserAgent,
+  collectNativeInfo,
+  nativePrelude,
+  parseWebMessage,
+  resolveAuth
+} from '../native/bridge'
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#121212' },
@@ -55,6 +62,19 @@ export default function Index() {
   const game = useRef<WebView>(null)
   const [authUrl, setAuthUrl] = useState<string | undefined>()
   const [loading, setLoading] = useState(true)
+  /** el UA real del WebView, que solo se conoce desde dentro de una página */
+  const [deviceUserAgent, setDeviceUserAgent] = useState<string | undefined>()
+  /**
+   * Con qué identidad se está intentando el login.
+   *
+   * Empieza por la del cliente oficial. Si Google contesta que el navegador no
+   * es seguro, pasa a `browser` - la del propio aparato sin marcas de WebView -
+   * y se reintenta una sola vez. Cambiar esta prop remonta el WebView, que es
+   * justo lo que hace falta para que se aplique.
+   */
+  const [authIdentity, setAuthIdentity] = useState<'client' | 'browser'>('client')
+
+  const authUserAgent = authIdentity === 'browser' && deviceUserAgent ? browserUserAgent(deviceUserAgent) : AUTH_UA
 
   // se lee una vez: el aparato no cambia mientras la app vive
   const native = useMemo(collectNativeInfo, [])
@@ -69,6 +89,7 @@ export default function Index() {
   const onBack = useCallback(() => {
     if (authUrl) {
       setAuthUrl(undefined)
+      setAuthIdentity('client')
       game.current?.injectJavaScript(resolveAuth({ cancelled: true }))
       return true
     }
@@ -115,13 +136,41 @@ export default function Index() {
    * la URL de otra pestaña. Aquí la ventana es nuestra, así que cada navegación
    * pasa por `onNavigationStateChange` y el `code` se recoge solo.
    */
-  const onAuthNavigation = useCallback((event: WebViewNavigation) => {
-    const code = codeFrom(event.url)
-    const error = errorFrom(event.url)
-    if (!code && !error) return
-    setAuthUrl(undefined)
-    game.current?.injectJavaScript(resolveAuth(code ? { code } : { error }))
-  }, [])
+  const onAuthNavigation = useCallback(
+    (event: WebViewNavigation) => {
+      // Google puede llevar el rechazo en la propia URL, sin llegar a pintar la
+      // página; el sondeo inyectado solo corre cuando una carga termina
+      if (/disallowed_useragent/i.test(event.url)) {
+        setAuthIdentity((current) => (current === 'client' && deviceUserAgent ? 'browser' : current))
+        return
+      }
+      const code = codeFrom(event.url)
+      const error = errorFrom(event.url)
+      if (!code && !error) return
+      setAuthUrl(undefined)
+      setAuthIdentity('client')
+      game.current?.injectJavaScript(resolveAuth(code ? { code } : { error }))
+    },
+    [deviceUserAgent]
+  )
+
+  /**
+   * "Este navegador o app puede no ser seguro".
+   *
+   * Google la saca a mitad del flujo, y solo a veces: depende de si toca volver
+   * a autenticarse. Cuando aparece, se reintenta el mismo login con la identidad
+   * del propio aparato en vez de la del cliente oficial. Una vez y no más - si
+   * la segunda también cae, se deja la pantalla como está en lugar de dar
+   * vueltas, para que se vea qué ha pasado.
+   */
+  const onAuthMessage = useCallback(
+    (raw: string) => {
+      if (parseWebMessage(raw)?.type !== 'auth:blocked') return
+      if (authIdentity !== 'client' || !deviceUserAgent) return
+      setAuthIdentity('browser')
+    },
+    [authIdentity, deviceUserAgent]
+  )
 
   return (
     <View style={styles.root}>
@@ -135,7 +184,11 @@ export default function Index() {
         injectedJavaScriptBeforeContentLoaded={prelude}
         onMessage={(event) => {
           const message = parseWebMessage(event.nativeEvent.data)
-          if (message) setAuthUrl(message.url)
+          if (message?.type === 'ua') setDeviceUserAgent(message.value)
+          if (message?.type === 'auth:open') {
+            setAuthIdentity('client')
+            setAuthUrl(message.url)
+          }
         }}
         onLoadEnd={() => setLoading(false)}
         // sin esto `window.open` abre una ventana que no controlamos y el login
@@ -169,13 +222,18 @@ export default function Index() {
           </View>
           {authUrl ? (
             <WebView
+              // remontar al cambiar de identidad es lo que reaplica el UA
+              key={authIdentity}
               source={{ uri: authUrl }}
               style={styles.fill}
-              // Safari de iPhone, que es lo que pone el cliente oficial en
-              // `InAppBrowserOverrideUserAgent`: Google rechaza OAuth dentro de
-              // un WebView que se declare como tal
-              userAgent={AUTH_UA}
+              // De partida, Safari de iPhone: es lo que pone el cliente oficial
+              // en `InAppBrowserOverrideUserAgent`, porque Google rechaza OAuth
+              // dentro de un WebView que se declare como tal. Si aun así lo
+              // rechaza, `onAuthMessage` cambia a la del aparato.
+              userAgent={authUserAgent}
               onNavigationStateChange={onAuthNavigation}
+              injectedJavaScript={authBlockedProbe}
+              onMessage={(event) => onAuthMessage(event.nativeEvent.data)}
               javaScriptEnabled
               domStorageEnabled
               thirdPartyCookiesEnabled

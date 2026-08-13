@@ -70,16 +70,56 @@ export const nativePrelude = (info: NativeInfo): string => `
   window.lindoNative.postMessage = function (message) {
     window.ReactNativeWebView.postMessage(JSON.stringify(message));
   };
+  // el UA real del WebView, que solo se conoce desde dentro. Hace falta para
+  // poder ofrecer una identidad de navegador coherente si el login la necesita
+  window.lindoNative.postMessage({ type: 'ua', value: navigator.userAgent });
   true;
 `
 
-/** lo que la página manda hacia aquí */
-export type WebMessage = { type: 'auth:open'; url: string }
+/**
+ * El mismo aparato y el mismo motor, pero sin las marcas de WebView.
+ *
+ * Quita `Build/<id>`, `; wv`, `Version/4.0` y el sufijo que añade Cordova. Lo
+ * que queda es un Chrome-en-Android que existe de verdad en este teléfono: la
+ * versión de Chrome es la suya, el modelo es el suyo, y coincide con la pila TLS
+ * que va a usar de todas formas. Se construye a partir del UA real y no de una
+ * cadena inventada justamente por eso.
+ */
+export const browserUserAgent = (raw: string): string =>
+  raw
+    .replace(/ Build\/[^);]+/, '')
+    .replace(/; wv\)/, ')')
+    .replace(/ Version\/[\d.]+ Chrome\//, ' Chrome/')
+    .replace(/ DofusTouch Client [\d.]+$/, '')
+    .trim()
+
+/**
+ * Cómo se reconoce la pantalla de "este navegador puede no ser seguro".
+ *
+ * Google la sirve a mitad del flujo y solo a veces - depende de si toca volver a
+ * autenticarse -, así que no vale con probarla una vez y darla por buena.
+ */
+export const authBlockedProbe = `
+  (function () {
+    var text = (document.body && document.body.innerText) || '';
+    var blocked =
+      /disallowed_useragent/i.test(location.href) ||
+      /puede no ser seguro|may not be secure|navegador o app no seguro/i.test(text);
+    if (blocked) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'auth:blocked' }));
+  })();
+  true;
+`
+
+/** lo que las páginas mandan hacia aquí */
+export type WebMessage = { type: 'auth:open'; url: string } | { type: 'auth:blocked' } | { type: 'ua'; value: string }
 
 export const parseWebMessage = (raw: string): WebMessage | undefined => {
   try {
     const value = JSON.parse(raw) as WebMessage
-    return value && value.type === 'auth:open' && typeof value.url === 'string' ? value : undefined
+    if (!value || typeof value.type !== 'string') return undefined
+    if (value.type === 'auth:open') return typeof value.url === 'string' ? value : undefined
+    if (value.type === 'ua') return typeof value.value === 'string' ? value : undefined
+    return value.type === 'auth:blocked' ? value : undefined
   } catch {
     return undefined
   }
