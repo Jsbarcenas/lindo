@@ -125,7 +125,28 @@ propio cliente lo lee con la bandera que el parche activa.
 
 **Un pegado manual es el único paso del flujo de escritorio que no sobrevive.**
 
-## Fase 5 · Despliegue en Railway — **hecha**
+## Fase 5 · Despliegue — **hecha**, y sirve Vercel o Railway
+
+Dos requisitos, y ninguno necesita un servidor propio:
+
+1. **Ficheros estáticos.** 1,2 MB — el bundle de Dofus ya no viaja en el
+   despliegue, lo baja el navegador.
+2. **`/haapi/*` reenviado a `haapi.ankama.com`**, porque su preflight nunca
+   permite la cabecera `apikey`. Es HTTP normal.
+
+Por eso **Vercel vale**, al contrario de lo que concluí en la fase 0: aquello
+descartaba Vercel por si hacía falta un proxy WebSocket, y resultó que no.
+
+`vercel.json` (raíz) lo resuelve con un `rewrite`, sin funciones. `Dockerfile` +
+`railway.json` + `server.mjs` siguen ahí para Railway; el `server.mjs` hace el
+mismo proxy en código.
+
+**Lo único a confirmar en el primer despliegue a Vercel**: que su `rewrite` a un
+destino externo reenvía cabeceras de petición arbitrarias, `apikey` incluida. Si
+no lo hiciera, la salida es una función en `api/haapi/[...path].ts` que haga lo
+mismo que `proxyHaapi` en `server.mjs`.
+
+### Detalle de Railway
 
 `Dockerfile` multi-etapa y `railway.json` en la raíz. El build descarga y
 parchea el cliente, así que la imagen lleva dentro la versión contra la que se
