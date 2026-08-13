@@ -241,10 +241,21 @@ export class GameUpdater {
         for (const i in regex[filename]) {
           // the patches can reference the origin the game is served from, which is resolved at runtime
           const replacement = regex[filename][i][1].replace(/{{DOFUS_ORIGIN}}/g, this._dofusOrigin.replace(/\/$/, ''))
-          missingDofusFiles[filename] = (missingDofusFiles[filename] as string).replace(
-            new RegExp(regex[filename][i][0], 'g'),
-            replacement
-          )
+          const pattern = new RegExp(regex[filename][i][0], 'g')
+          const before = missingDofusFiles[filename] as string
+          const after = before.replace(pattern, replacement)
+
+          // String.replace returns the input untouched when nothing matches, so
+          // a patch that stopped matching an upstream change used to disappear
+          // without a trace - including the one that sets the reported platform,
+          // which then silently kept Ankama's own value. Several of these are
+          // anchored on distances between tokens (`[\s\S]{1,200}`) that a
+          // reformat is enough to break, so this is not a rare failure.
+          if (after === before) {
+            logger.error(`GameUpdater -> regex patch ${i} of ${filename} matched nothing, it needs updating`)
+          }
+
+          missingDofusFiles[filename] = after
         }
       }
     }

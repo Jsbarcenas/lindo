@@ -1,9 +1,48 @@
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
+        <!-- Must be loaded, not inlined, and before anything else runs: the
+             installer is applied to every realm the page creates, so it has to
+             exist before the first one does. -->
+        <script src="platform.js"></script>
         <script>
         // Touch fix
         window.ontouchstart = function(e) {};
+
+        // ---------------------------------------------------------------
+        // Platform identity.
+        //
+        // Runs before build/script.js is appended by initDofus, so it is all in
+        // place by the time the bundle reads any of it.
+        //
+        // The User-Agent alone does not decide the platform. The bundle resolves
+        // it as `window.device.platform || UAParser(navigator.userAgent)` and,
+        // separately, `navigator.userAgentData` reports the real host OS to
+        // anything that asks. Setting only some of these is worse than setting
+        // none: the disagreement between them is itself the signal.
+        //
+        // Every value comes from the profile the main process built, so the
+        // frame and the request headers describe the same device.
+        // ---------------------------------------------------------------
+        var androidProfile = (window.top && window.top.androidProfile) || {
+            // only reached if the renderer failed to publish one; keeps the
+            // frame coherent instead of half-overridden
+            androidVersion: "14",
+            chromeVersion: "138.0.7204.157",
+            chromeMajor: "138",
+            model: "Pixel 7",
+            manufacturer: "Google",
+            navigatorPlatform: "Linux armv8l",
+            glVendor: "ARM",
+            glRenderer: "Mali-G710 MC10",
+            cores: 8,
+            memory: 8
+        };
+        androidProfile.uuid = (window.top && window.top.key)
+            ? String(window.top.key).slice(0, 16)
+            : "0123456789abcdef";
+
+        window.installLindoPlatform(window, androidProfile);
 
         // Init
         window.buildVersion = window.top.buildVersion;
@@ -24,6 +63,8 @@
         window.IDBCursor = {};
         window.IDBKeyRange = {};
 
+        // installLindoPlatform sets window.device; these are the plugin surfaces
+        // the bundle calls into, which the device object does not cover
         window.cordova = {
             plugins: {
                 isemulator: {
@@ -47,7 +88,7 @@
                 }
             }
         };
-        
+
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {
@@ -82,7 +123,7 @@
             scriptScript.src = 'build/script.js';
             head.appendChild(scriptScript);
         };
-        
+
     </script>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="build/styles-native.css" />

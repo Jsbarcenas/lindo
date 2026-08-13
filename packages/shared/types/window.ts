@@ -1,3 +1,4 @@
+import { AndroidProfile } from './android-profile'
 import { LindoAPI, LindoTitleBar } from './lindo-api'
 
 /**
@@ -19,6 +20,8 @@ declare global {
     buildVersion: string
     appVersion: string
     lindoVersion: string
+    /** read from the game frame as `window.top.androidProfile` */
+    androidProfile?: AndroidProfile
     key?: string
     titleBar?: LindoTitleBar
   }

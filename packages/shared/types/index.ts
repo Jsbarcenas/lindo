@@ -1,4 +1,5 @@
 export * from './update-progress'
+export * from './android-profile'
 export * from './game-context'
 export * from './lindo-api'
 export * from './auto-group'

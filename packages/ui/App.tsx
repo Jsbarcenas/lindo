@@ -37,7 +37,13 @@ export const App = () => {
     }
     if (didSetUpGameContextRef.current === false) {
       didSetUpGameContextRef.current = true
-      window.lindoAPI.fetchGameContext().then(setGameContext)
+      window.lindoAPI.fetchGameContext().then((context) => {
+        // the game frame reads this off window.top while its own inline script
+        // runs, which is before the bundle loads - it has to be set here, not in
+        // an effect that only runs once the frame is already mounted
+        window.androidProfile = context.androidProfile
+        setGameContext(context)
+      })
     }
   }, [])
 

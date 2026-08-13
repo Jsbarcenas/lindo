@@ -24,7 +24,7 @@ import { runUpdater } from './updater'
 import { GameWindow, OptionWindow, openWebAuthWindow } from './windows'
 import path, { join } from 'path'
 import cors from 'cors'
-import { I18n } from './utils'
+import { getAndroidProfile, I18n } from './utils'
 import { logger, setupRendererLogger } from './logger'
 import axios from 'axios'
 import { Locales } from '@lindo/i18n'
@@ -213,7 +213,7 @@ export class Application {
     setupRendererLogger()
 
     // handlers
-    ipcMain.handle(IPCEvents.GET_GAME_CONTEXT, (event) => {
+    ipcMain.handle(IPCEvents.GET_GAME_CONTEXT, async (event) => {
       const serverAddress: AddressInfo = this._gameServer.address() as AddressInfo
       const gWindow = this._gWindows.find((gWindow) => gWindow.id === event.sender.id)
       const context: GameContext = {
@@ -223,7 +223,11 @@ export class Application {
         windowId: event.sender.id,
         multiAccount: gWindow?.multiAccount,
         hash: this._hash,
-        platform: platform()
+        platform: platform(),
+        // the window owns the profile because its request headers are built from
+        // the same object; falling back to a fresh one would let the frame and
+        // the headers describe two different devices
+        androidProfile: gWindow ? gWindow.androidProfile : await getAndroidProfile()
       }
       return JSON.stringify(context)
     })

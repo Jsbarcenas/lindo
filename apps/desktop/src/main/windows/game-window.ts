@@ -1,4 +1,5 @@
 import {
+  AndroidProfile,
   FollowInstruction,
   GameTeam,
   GameTeamWindow,
@@ -12,7 +13,7 @@ import { attachTitlebarToWindow } from 'custom-electron-titlebar/main'
 import { join } from 'path'
 import { EventEmitter } from 'events'
 import TypedEmitter from 'typed-emitter'
-import { generateUserArgent } from '../utils'
+import { generateUserArgent, getAndroidProfile, orderedRequestHeaders } from '../utils'
 import { logger } from '../logger'
 import { platform } from 'os'
 
@@ -26,9 +27,14 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
   private readonly _team?: GameTeam
   private _isMuted = false
   private readonly _index: number
+  private readonly _androidProfile: AndroidProfile
 
   get id() {
     return this._win.webContents.id!
+  }
+
+  get androidProfile(): AndroidProfile {
+    return this._androidProfile
   }
 
   get multiAccount(): MultiAccountContext | undefined {
@@ -43,6 +49,7 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
   private constructor({
     index,
     userAgent,
+    androidProfile,
     store,
     team,
     url,
@@ -50,6 +57,7 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
   }: {
     index: number
     userAgent: string
+    androidProfile: AndroidProfile
     store: RootStore
     url: string
     team?: GameTeam
@@ -57,6 +65,7 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
   }) {
     super()
     this._index = index
+    this._androidProfile = androidProfile
     this._store = store
     this._teamWindow = teamWindow
     this._team = team
@@ -91,15 +100,20 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
         delete requestHeaders.Referer
       }
 
-      // remove sec headers on requests
-      delete requestHeaders['sec-ch-ua']
-      delete requestHeaders['sec-ch-ua-mobile']
-      delete requestHeaders['sec-ch-ua-platform']
-      delete requestHeaders['Sec-Fetch-Site']
-      delete requestHeaders['Sec-Fetch-Mode']
-      delete requestHeaders['Sec-Fetch-Dest']
-
-      const beforeSendResponse: BeforeSendResponse = { requestHeaders }
+      // Chromium derives the client hints from its own identity and ignores
+      // setUserAgent, so they used to contradict the User-Agent and were deleted
+      // to hide it. Deleting them is not neutral: current Chrome on Android
+      // always sends them, so an Android User-Agent arriving without any is a
+      // shape no phone produces. They are overwritten to match the profile
+      // instead. Sec-Fetch-* are left alone - they describe the request, not the
+      // device, and stripping them is the same kind of tell.
+      //
+      // Rebuilt in order rather than assigned onto: assigning appended the ones
+      // that were not already present, so a capture showed them arriving after
+      // `cookie`, at the end of the request.
+      const beforeSendResponse: BeforeSendResponse = {
+        requestHeaders: orderedRequestHeaders(requestHeaders, androidProfile)
+      }
       callback(beforeSendResponse)
     })
 
@@ -198,7 +212,8 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
     teamWindow?: GameTeamWindow
   }): Promise<GameWindow> {
     const userAgent = await generateUserArgent(store.appStore.appVersion)
-    return new GameWindow({ index, url, userAgent, store, team, teamWindow })
+    const androidProfile = await getAndroidProfile()
+    return new GameWindow({ index, url, userAgent, androidProfile, store, team, teamWindow })
   }
 
   private _close(event: Event) {
