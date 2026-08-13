@@ -1,0 +1,582 @@
+{
+  "at": "2026-08-13T08:18:30.779Z",
+  "totals": {
+    "pass": 22,
+    "fail": 13,
+    "missing": 0,
+    "error": 0
+  },
+  "results": [
+    {
+      "id": "http.ua",
+      "layer": "http",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.28929.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36",
+      "expected": "Chrome on Android User-Agent",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.platform",
+      "layer": "http",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "\"macOS\"",
+      "expected": "\"Android\"",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.mobile",
+      "layer": "http",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "?0",
+      "expected": "?1",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.brands",
+      "layer": "http",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "\"Not/A)Brand\";v=\"99\", \"Chromium\";v=\"148\"",
+      "expected": "brand list including a GREASE entry",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.highentropy",
+      "layer": "http",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "sec-ch-ua-model=- sec-ch-ua-platform-version=- sec-ch-ua-arch=- sec-ch-ua-bitness=-",
+      "expected": "sec-ch-ua-model, sec-ch-ua-platform-version, sec-ch-ua-arch, sec-ch-ua-bitness",
+      "fixable": "client"
+    },
+    {
+      "id": "http.ch.arch",
+      "layer": "http",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": "arch=- bitness=-",
+      "expected": "arm / 64",
+      "fixable": "client"
+    },
+    {
+      "id": "http.sec.fetch",
+      "layer": "http",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "sec-fetch-site,sec-fetch-mode,sec-fetch-dest",
+      "expected": "all three present",
+      "fixable": "client"
+    },
+    {
+      "id": "http.header.order",
+      "layer": "http",
+      "family": "M",
+      "verdict": "FAIL",
+      "observed": "host,connection,content-length,sec-ch-ua-platform,user-agent,sec-ch-ua,content-type,sec-ch-ua-mobile,accept,origin,sec-fetch-site,sec-fetch-mode,sec-fetch-dest,referer,accept-encoding,accept-language",
+      "expected": "sec-ch-ua before user-agent",
+      "fixable": "network"
+    },
+    {
+      "id": "http.accept.lang",
+      "layer": "http",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": "en-US",
+      "expected": "present",
+      "fixable": "client"
+    },
+    {
+      "id": "js.uad.platform",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "Android",
+      "expected": "Android",
+      "fixable": "client"
+    },
+    {
+      "id": "js.uad.highentropy",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "{\"architecture\":\"arm\",\"bitness\":\"64\",\"model\":\"Pixel 8\",\"platformVersion\":\"15.0.0\",\"uaFullVersion\":\"139.0.7258.123\",\"fullVersionList\":[{\"brand\":\"Chromium\",\"version\":\"139.0.7258.123\"},{\"brand\":\"Google Chrome\",\"version\":\"139.0.7258.123\"},{\"brand\":\"Not?A_Brand\",\"version\":\"24.0.0.0\"}],\"brands\":[{\"brand\":\"Chromium\",\"version\":\"139\"},{\"brand\":\"Google Chrome\",\"version\":\"139\"},{\"brand\":\"Not?A_Brand\",\"version\":\"24\"}],\"mobile\":true,\"platform\":\"Android\"}",
+      "expected": "Android + model + version",
+      "fixable": "client"
+    },
+    {
+      "id": "js.platform",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "Linux armv8l",
+      "expected": "Linux armv8l",
+      "fixable": "client"
+    },
+    {
+      "id": "js.vendor",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "Google Inc.",
+      "expected": "Google Inc.",
+      "fixable": "client"
+    },
+    {
+      "id": "js.touch",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "maxTouchPoints=5 ontouchstart=false TouchEvent=true",
+      "expected": "touch capable",
+      "fixable": "client"
+    },
+    {
+      "id": "js.plugins",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": 0,
+      "expected": "0 (Android Chrome ships none)",
+      "fixable": "client"
+    },
+    {
+      "id": "js.webdriver",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": false,
+      "expected": "false",
+      "fixable": "client"
+    },
+    {
+      "id": "js.device",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "{\"available\":true,\"cordova\":\"12.0.1\",\"platform\":\"Android\",\"version\":\"15\",\"model\":\"Pixel 8\",\"manufacturer\":\"Google\",\"isVirtual\":false,\"serial\":\"unknown\",\"uuid\":\"aaaaaaaaaaaaaaaa\"}",
+      "expected": "full Cordova device object",
+      "fixable": "client"
+    },
+    {
+      "id": "js.webgl",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "gl1=Mali-G715-Immortalis MC11 gl2=Mali-G715-Immortalis MC11",
+      "expected": "mobile GPU in both",
+      "fixable": "client"
+    },
+    {
+      "id": "js.webgpu",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "{\"vendor\":\"apple\",\"architecture\":\"metal-3\",\"device\":\"\",\"description\":\"\"}",
+      "expected": "no desktop GPU vendor",
+      "fixable": "client"
+    },
+    {
+      "id": "js.voices",
+      "layer": "js",
+      "family": "D",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "no macOS voices",
+      "fixable": "client"
+    },
+    {
+      "id": "js.fonts",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "Helvetica Neue,Lucida Grande,Geneva",
+      "expected": "no macOS-only fonts",
+      "fixable": "no"
+    },
+    {
+      "id": "js.mq",
+      "layer": "js",
+      "family": "D",
+      "verdict": "FAIL",
+      "observed": "coarse=false hoverNone=false",
+      "expected": "coarse pointer, no hover",
+      "fixable": "client"
+    },
+    {
+      "id": "js.perfmemory",
+      "layer": "js",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": true,
+      "expected": "absent on most Android",
+      "fixable": "client"
+    },
+    {
+      "id": "m.descriptor.navigator",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "no own properties on navigator",
+      "fixable": "client"
+    },
+    {
+      "id": "m.tostring.getparameter",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "function getParameter() { [native code] }",
+      "expected": "[native code]",
+      "fixable": "client"
+    },
+    {
+      "id": "m.tostring.generic",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "(none)",
+      "expected": "every patched builtin reports native code",
+      "fixable": "client"
+    },
+    {
+      "id": "m.uad.class",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "[object NavigatorUAData]",
+      "expected": "[object NavigatorUAData]",
+      "fixable": "client"
+    },
+    {
+      "id": "m.iframe.escape",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "Linux armv8l",
+      "expected": "Linux armv8l inside a new iframe",
+      "fixable": "client"
+    },
+    {
+      "id": "m.worker.escape",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "Linux armv8l",
+      "expected": "Linux armv8l inside a worker",
+      "fixable": "client"
+    },
+    {
+      "id": "m.stack",
+      "layer": "js",
+      "family": "M",
+      "verdict": "PASS",
+      "observed": "Error: probe\n    at http://127.0.0.1:8420/probe.js:182:46\n    at safe (http://127.0.0.1:8420/probe.js:22:19)\n    at collect (http://127.0.0.1:8420/probe.js:182:20)",
+      "expected": "no host paths in stack traces",
+      "fixable": "no"
+    },
+    {
+      "id": "c.chrome.version",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": "unparseable",
+      "expected": "same major everywhere",
+      "fixable": "client"
+    },
+    {
+      "id": "c.model",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": "Pixel 8/Pixel 8",
+      "expected": "one model everywhere",
+      "fixable": "client"
+    },
+    {
+      "id": "c.android.version",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": "15/15",
+      "expected": "one Android major everywhere",
+      "fixable": "client"
+    },
+    {
+      "id": "c.gpu.model",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "FAIL",
+      "observed": "Mali-G715-Immortalis MC11",
+      "expected": "GPU matching the model",
+      "fixable": "client"
+    },
+    {
+      "id": "c.ua.vs.js",
+      "layer": "coherence",
+      "family": "C",
+      "verdict": "PASS",
+      "observed": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.28929.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36 | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.28929.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36",
+      "expected": "header and navigator agree",
+      "fixable": "client"
+    }
+  ],
+  "capture": {
+    "http": {
+      "headers": [
+        [
+          "Host",
+          "127.0.0.1:8420"
+        ],
+        [
+          "Connection",
+          "keep-alive"
+        ],
+        [
+          "Content-Length",
+          "2239"
+        ],
+        [
+          "sec-ch-ua-platform",
+          "\"macOS\""
+        ],
+        [
+          "User-Agent",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.28929.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36"
+        ],
+        [
+          "sec-ch-ua",
+          "\"Not/A)Brand\";v=\"99\", \"Chromium\";v=\"148\""
+        ],
+        [
+          "Content-Type",
+          "text/plain"
+        ],
+        [
+          "sec-ch-ua-mobile",
+          "?0"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "Origin",
+          "http://127.0.0.1:8420"
+        ],
+        [
+          "Sec-Fetch-Site",
+          "same-origin"
+        ],
+        [
+          "Sec-Fetch-Mode",
+          "cors"
+        ],
+        [
+          "Sec-Fetch-Dest",
+          "empty"
+        ],
+        [
+          "Referer",
+          "http://127.0.0.1:8420/selftest"
+        ],
+        [
+          "Accept-Encoding",
+          "gzip, deflate, br, zstd"
+        ],
+        [
+          "Accept-Language",
+          "en-US"
+        ]
+      ],
+      "httpVersion": "1.1"
+    },
+    "warmUp": {
+      "headers": [
+        [
+          "Host",
+          "127.0.0.1:8420"
+        ],
+        [
+          "Connection",
+          "keep-alive"
+        ],
+        [
+          "sec-ch-ua-platform",
+          "\"macOS\""
+        ],
+        [
+          "User-Agent",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.28929.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36"
+        ],
+        [
+          "sec-ch-ua",
+          "\"Not/A)Brand\";v=\"99\", \"Chromium\";v=\"148\""
+        ],
+        [
+          "sec-ch-ua-mobile",
+          "?0"
+        ],
+        [
+          "Accept",
+          "*/*"
+        ],
+        [
+          "Sec-Fetch-Site",
+          "same-origin"
+        ],
+        [
+          "Sec-Fetch-Mode",
+          "cors"
+        ],
+        [
+          "Sec-Fetch-Dest",
+          "empty"
+        ],
+        [
+          "Referer",
+          "http://127.0.0.1:8420/selftest"
+        ],
+        [
+          "Accept-Encoding",
+          "gzip, deflate, br, zstd"
+        ],
+        [
+          "Accept-Language",
+          "en-US"
+        ]
+      ],
+      "httpVersion": "1.1"
+    },
+    "js": {
+      "sid": "1786609110704-2rmqnn",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.28929.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36",
+      "platform": "Linux armv8l",
+      "vendor": "Google Inc.",
+      "languages": [
+        "en-US",
+        "en-CO",
+        "es-CO"
+      ],
+      "maxTouchPoints": 5,
+      "hardwareConcurrency": 9,
+      "deviceMemory": 8,
+      "webdriver": false,
+      "pluginCount": 0,
+      "mimeTypeCount": 0,
+      "uaData": {
+        "brands": [
+          {
+            "brand": "Chromium",
+            "version": "139"
+          },
+          {
+            "brand": "Google Chrome",
+            "version": "139"
+          },
+          {
+            "brand": "Not?A_Brand",
+            "version": "24"
+          }
+        ],
+        "mobile": true,
+        "platform": "Android"
+      },
+      "uaDataTag": "[object NavigatorUAData]",
+      "device": {
+        "available": true,
+        "cordova": "12.0.1",
+        "platform": "Android",
+        "version": "15",
+        "model": "Pixel 8",
+        "manufacturer": "Google",
+        "isVirtual": false,
+        "serial": "unknown",
+        "uuid": "aaaaaaaaaaaaaaaa"
+      },
+      "cordovaPlugins": null,
+      "webgl1": {
+        "vendor": "ARM",
+        "renderer": "Mali-G715-Immortalis MC11"
+      },
+      "webgl2": {
+        "vendor": "ARM",
+        "renderer": "Mali-G715-Immortalis MC11"
+      },
+      "screen": {
+        "width": 1512,
+        "height": 982,
+        "availWidth": 1512,
+        "availHeight": 888,
+        "colorDepth": 30,
+        "dpr": 2,
+        "orientation": "portrait-primary",
+        "windowOrientation": 0
+      },
+      "hasOnTouchStart": false,
+      "hasTouchEvent": true,
+      "pointerCoarse": false,
+      "hoverNone": false,
+      "hasPerformanceMemory": true,
+      "hasBattery": true,
+      "timeZone": "America/Bogota",
+      "voices": [],
+      "fonts": [
+        "Helvetica Neue",
+        "Lucida Grande",
+        "Geneva"
+      ],
+      "ownNavigatorProps": [],
+      "getParameterSource": "function getParameter() { [native code] }",
+      "nonNativeFunctions": [],
+      "iframePlatform": "Linux armv8l",
+      "stackSample": "Error: probe\n    at http://127.0.0.1:8420/probe.js:182:46\n    at safe (http://127.0.0.1:8420/probe.js:22:19)\n    at collect (http://127.0.0.1:8420/probe.js:182:20)",
+      "uaDataHighEntropy": {
+        "architecture": "arm",
+        "bitness": "64",
+        "model": "Pixel 8",
+        "platformVersion": "15.0.0",
+        "uaFullVersion": "139.0.7258.123",
+        "fullVersionList": [
+          {
+            "brand": "Chromium",
+            "version": "139.0.7258.123"
+          },
+          {
+            "brand": "Google Chrome",
+            "version": "139.0.7258.123"
+          },
+          {
+            "brand": "Not?A_Brand",
+            "version": "24.0.0.0"
+          }
+        ],
+        "brands": [
+          {
+            "brand": "Chromium",
+            "version": "139"
+          },
+          {
+            "brand": "Google Chrome",
+            "version": "139"
+          },
+          {
+            "brand": "Not?A_Brand",
+            "version": "24"
+          }
+        ],
+        "mobile": true,
+        "platform": "Android"
+      },
+      "gpuAdapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      },
+      "workerPlatform": "Linux armv8l"
+    }
+  }
+}
