@@ -139,6 +139,39 @@ y dejarlas fuera del ciclo; van al informe final como limitación estructural.
 Corregirlas exigiría enrutar el tráfico por un proxy con `utls` o similar, que es
 un proyecto aparte.
 
+#### Medido (2026-08-13) con `tls-probe.mjs`
+
+Servidor TCP crudo que lee el ClientHello y lo huella sin necesitar certificado.
+
+**JA3 no sirve.** Dos conexiones del mismo Chrome dieron dos JA3 distintos:
+Chrome baraja el orden de extensiones desde la v110, y JA3 lo incluye sin
+ordenar. JA4 sí es estable — idéntico en las 20+ capturas del mismo cliente.
+
+| Cliente | JA4 |
+|---|---|
+| Chrome 149 / Android (emulador) | `t13i1515h2_8daaf6152771_d8a2da3f94cd` |
+| Chromium 150 / Electron (Lindo) | `t13i1515h2_8daaf6152771_806a8c22fdea` |
+
+Los dos primeros tercios **coinciden**: misma versión TLS, 15 ciphers, 15
+extensiones, mismo ALPN y el mismo hash de cifrados. Conjunto de extensiones y
+curvas, idénticos también.
+
+La única diferencia son los **algoritmos de firma**: Electron manda tres extra
+al principio (`0x0904`, `0x0905`, `0x0906`) que Chrome 149 no manda.
+
+**Lo que esto no resuelve.** La captura de Android es de Chrome **149** y
+Electron es Chromium **150**, así que el delta puede ser de versión y no de
+plataforma. Importa porque el cliente real de Dofus Touch no corre sobre Chrome
+sino sobre el **WebView**, que en ese emulador está en 150.0.7871.124 — la misma
+línea que Electron. Para cerrarlo hace falta una captura del WebView 150 sobre
+Android, y el emulador no trae ninguna app que lo permita.
+
+**Lo que sí resuelve.** El cliente declara Chrome 150 en el User-Agent y en los
+client hints desde que la versión se deriva de `process.versions.chrome`, y su
+pila TLS *es* Chromium 150. Antes declaraba 137 mientras la huella decía 150, que
+era una contradicción real y comprobada. Esa parte está cerrada, dependa de
+versión o de plataforma el resto.
+
 **Aceptación fase 1:** cada evaluador tiene un test unitario con una entrada
 sintética de Android real (PASS) y una de Chrome/macOS (FAIL).
 
