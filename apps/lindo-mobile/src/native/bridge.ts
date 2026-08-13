@@ -101,11 +101,24 @@ export const browserUserAgent = (raw: string): string =>
  */
 export const authBlockedProbe = `
   (function () {
-    var text = (document.body && document.body.innerText) || '';
-    var blocked =
-      /disallowed_useragent/i.test(location.href) ||
-      /puede no ser seguro|may not be secure|navegador o app no seguro/i.test(text);
-    if (blocked) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'auth:blocked' }));
+    var seen = false;
+    var check = function () {
+      if (seen) return;
+      var text = (document.body && document.body.innerText) || '';
+      var blocked =
+        /\\/signin\\/rejected/.test(location.pathname) ||
+        /disallowed_useragent/i.test(location.href) ||
+        /puede no ser seguro|may not be secure|Couldn.t sign you in/i.test(text);
+      if (!blocked) return;
+      seen = true;
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'auth:blocked' }));
+    };
+    check();
+    // La pantalla de rechazo la pinta el JS de Google *después* de cargar - al
+    // terminar la carga el cuerpo todavía dice "Loading" -, así que mirar una
+    // sola vez no la ve nunca. Se vigila un rato y se para.
+    var timer = setInterval(check, 600);
+    setTimeout(function () { clearInterval(timer); }, 30000);
   })();
   true;
 `
