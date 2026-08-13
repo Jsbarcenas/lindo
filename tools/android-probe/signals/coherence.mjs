@@ -114,5 +114,27 @@ export const COHERENCE_SIGNALS = [
       const ok = headerUa !== undefined && ctx.js.userAgent !== undefined && headerUa === ctx.js.userAgent
       return verdict('c.ua.vs.js', 'client', ok, `${headerUa} | ${ctx.js.userAgent}`, 'header and navigator agree')
     }
+  },
+  {
+    /**
+     * The cheapest spoof detection there is, and this catalogue was missing it.
+     *
+     * Both values are plain properties of `navigator`, readable by any script in
+     * two lines and with no server involved - which makes this the check a page
+     * is most likely to be subjected to, not the least. Every run graded before
+     * this signal existed scored one point it had not earned.
+     */
+    id: 'c.uad.vs.ua',
+    run: (ctx) => {
+      const ua = ctx.js.userAgent
+      const uad = ctx.js.uaData
+      if (typeof ua !== 'string' || !uad) {
+        return verdict('c.uad.vs.ua', 'client', false, undefined, 'the string and userAgentData agree')
+      }
+      const stringSaysAndroid = /Android/i.test(ua)
+      const ok = stringSaysAndroid === (uad.platform === 'Android') && stringSaysAndroid === (uad.mobile === true)
+      const observed = `ua=${stringSaysAndroid ? 'Android' : 'not Android'} uad=${uad.platform}/${uad.mobile}`
+      return verdict('c.uad.vs.ua', 'client', ok, observed, 'the string and userAgentData agree')
+    }
   }
 ]

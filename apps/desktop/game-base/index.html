@@ -42,6 +42,16 @@
             ? String(window.top.key).slice(0, 16)
             : "0123456789abcdef";
 
+        // The real client appends its own product token, and the desktop build
+        // does the same when it sets the session User-Agent. The browser build
+        // has no session to set, so the string platform.js installs has to
+        // arrive complete - otherwise the two builds name the same device with
+        // two different strings, which is its own kind of tell.
+        if (androidProfile.userAgent && window.top.appVersion &&
+            androidProfile.userAgent.indexOf("DofusTouch Client") === -1) {
+            androidProfile.userAgent += " DofusTouch Client " + window.top.appVersion;
+        }
+
         window.installLindoPlatform(window, androidProfile);
 
         // The renderer hosting this frame is reachable from inside it - the

@@ -365,6 +365,23 @@
       var navigatorProto = win.Navigator && win.Navigator.prototype
       defineGetter(navigatorProto, 'platform', profile.navigatorPlatform)
       defineGetter(navigatorProto, 'vendor', 'Google Inc.')
+
+      // The desktop sets this on the session, so there the string already names
+      // Android and this leaves it exactly as it was - the guard is what keeps
+      // the two builds identical rather than merely similar.
+      //
+      // In a browser nothing sets it, and the result was a frame contradicting
+      // itself out loud: `userAgentData` reporting Android next to a string
+      // reporting macOS. A page still cannot set the *request* header, and that
+      // is not what this is for. It is for the reader inside the page, which is
+      // where the bundle looks - `UAParser(navigator.userAgent)` is its own
+      // fallback for resolving the platform.
+      if (profile.userAgent && !/Android/.test(win.navigator.userAgent)) {
+        defineGetter(navigatorProto, 'userAgent', profile.userAgent)
+        // appVersion is the same string without the product token, and a
+        // validator that reads one and not the other is not unusual
+        defineGetter(navigatorProto, 'appVersion', profile.userAgent.replace(/^Mozilla\//, ''))
+      }
       if (inputTraits) defineGetter(navigatorProto, 'maxTouchPoints', 5)
       defineGetter(navigatorProto, 'hardwareConcurrency', profile.cores)
       defineGetter(navigatorProto, 'deviceMemory', profile.memory)
