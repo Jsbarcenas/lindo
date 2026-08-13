@@ -229,6 +229,9 @@ const resetGameData = () => {
 const clearCache = () => {
   ipcRenderer.send(IPCEvents.CLEAR_CACHE)
 }
+const checkGameUpdate = () => {
+  ipcRenderer.send(IPCEvents.CHECK_GAME_UPDATE)
+}
 
 // web auth
 const openWebAuth = (url: string): Promise<WebAuthResult> => {
@@ -297,6 +300,7 @@ const lindoApi: LindoAPI = {
   subscribeToAutoGroupPathInstruction,
   sendAutoGroupPathInstruction,
   resetGameData,
+  checkGameUpdate,
   clearCache,
   openWebAuth,
   logger

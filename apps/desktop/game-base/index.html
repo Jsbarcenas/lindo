@@ -146,6 +146,33 @@
         // `window.top.platform` is no good either - nothing has ever set it.
         window.lindoBrowserAuth = window.top.lindoBrowserAuth === true;
 
+        // Haapi has to be reached through this origin, not directly.
+        //
+        // Ankama's preflight answers with `access-control-request-headers` - a
+        // *request* header name - instead of `Access-Control-Allow-Headers`, so
+        // the browser never sees `apikey` allowed and blocks the account call
+        // that follows a successful login. Nothing on this side can fix that;
+        // the same-origin path in front of a proxy can, and Electron is
+        // unaffected because it is not subject to CORS at all.
+        if (window.lindoBrowserAuth) {
+            (function () {
+                var HAAPI = "https://haapi.ankama.com/";
+                var nativeFetch = window.fetch;
+                window.fetch = function (input, init) {
+                    try {
+                        var url = typeof input === "string" ? input : input && input.url;
+                        if (url && url.indexOf(HAAPI) === 0) {
+                            var proxied = "/haapi/" + url.slice(HAAPI.length);
+                            input = typeof input === "string" ? proxied : new Request(proxied, input);
+                        }
+                    } catch (e) {
+                        top.console.log("lindo: no se pudo redirigir una petición a haapi", e);
+                    }
+                    return nativeFetch.call(this, input, init);
+                };
+            })();
+        }
+
         if (window.top.platform == "darwin") {
             (function() {
                 window.requestAnimationFrame = function(callback) {

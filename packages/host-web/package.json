@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@lindo/shared": "workspace:*",
+    "js-beautify": "^2.0.3",
     "mobx-state-tree": "^5.1.5"
   },
   "devDependencies": {
     "@lindo/typescript-config": "workspace:*",
+    "@types/js-beautify": "^1.14.3",
     "typescript": "^5.9.3"
   }
 }

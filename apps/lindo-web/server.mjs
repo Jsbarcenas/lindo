@@ -40,9 +40,49 @@ const send = (response, status, headers, body) => {
   response.end(body)
 }
 
+/**
+ * Ankama's account API, reached through this origin.
+ *
+ * Its preflight answers with `access-control-request-headers` where
+ * `Access-Control-Allow-Headers` belongs, so a browser never sees the `apikey`
+ * header allowed and blocks the account call that follows a successful login.
+ * Server to server there is no CORS to fail, so the request just goes through.
+ * The dev server does the same via vite's proxy.
+ */
+const HAAPI = 'https://haapi.ankama.com'
+
+const proxyHaapi = async (request, response, url) => {
+  const target = HAAPI + url.pathname.slice('/haapi'.length) + url.search
+  const headers = { ...request.headers }
+  // the upstream must see its own host, and hop-by-hop headers do not travel
+  delete headers.host
+  delete headers.connection
+
+  try {
+    const upstream = await fetch(target, {
+      method: request.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(request.method) ? undefined : request,
+      duplex: 'half'
+    })
+    const body = Buffer.from(await upstream.arrayBuffer())
+    response.writeHead(upstream.status, {
+      'Content-Type': upstream.headers.get('content-type') ?? 'application/json',
+      'Content-Length': body.length,
+      'Cache-Control': 'no-store'
+    })
+    response.end(body)
+  } catch (error) {
+    response.writeHead(502, { 'Content-Type': 'text/plain' })
+    response.end(`no se pudo alcanzar haapi: ${error.message}`)
+  }
+}
+
 http
   .createServer((request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? 'localhost'}`)
+
+    if (url.pathname.startsWith('/haapi/')) return proxyHaapi(request, response, url)
     const relative = decodeURIComponent(url.pathname).replace(/^\/+/, '')
     let file = path.join(ROOT, relative)
 

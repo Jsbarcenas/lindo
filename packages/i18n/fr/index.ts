@@ -130,7 +130,8 @@ const fr: Translation = {
       early: 'Jouer sur Dofus Touch Early',
       restart: 'Appliquer et redémarrer',
       resetGame: 'Re-télécharger les données du jeu',
-      clearCache: 'Vider le cache'
+      clearCache: 'Vider le cache',
+      checkGameUpdate: 'Rechercher une mise à jour'
     },
     shortcuts: {
       title: 'Raccourcis',

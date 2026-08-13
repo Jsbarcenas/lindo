@@ -58,6 +58,15 @@ export interface LindoAPI {
   // options
   resetGameData: () => void
   clearCache: () => void
+  /**
+   * Looks for a newer Dofus build and takes it if there is one.
+   *
+   * Both hosts already knew how to do this at startup and had no way to be
+   * asked. The desktop relaunches so its updater runs again; the web build runs
+   * the same manifest comparison in place. Neither re-downloads what has not
+   * changed - that is what separates this from `resetGameData`.
+   */
+  checkGameUpdate: () => void
   // web auth
   openWebAuth: (url: string) => Promise<WebAuthResult>
   logger: LindoLogger

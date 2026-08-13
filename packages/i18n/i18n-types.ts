@@ -405,6 +405,10 @@ type RootTranslation = {
 			 * C​l​e​a​r​ ​c​a​c​h​e
 			 */
 			clearCache: string
+			/**
+			 * C​h​e​c​k​ ​f​o​r​ ​u​p​d​a​t​e
+			 */
+			checkGameUpdate: string
 		}
 		shortcuts: {
 			/**
@@ -1468,6 +1472,10 @@ export type TranslationFunctions = {
 			 * Clear cache
 			 */
 			clearCache: () => LocalizedString
+			/**
+			 * Check for update
+			 */
+			checkGameUpdate: () => LocalizedString
 		}
 		shortcuts: {
 			/**

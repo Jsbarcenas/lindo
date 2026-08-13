@@ -11,6 +11,7 @@ import {
 import { applyPatch, getSnapshot, IJsonPatch, onSnapshot } from 'mobx-state-tree'
 import { publish, publishLocal, subscribe, subscribeEverywhere } from './channel'
 import { createMasterRecord, MasterRecord, open as openSealed, openMasterRecord, seal } from './crypto'
+import { forgetGame, onUpdateProgress, storedBuildVersion, updateGame } from './game-updater'
 import { installHotkeys } from './hotkeys'
 import { createAndroidProfile } from './profile'
 import * as storage from './storage'
@@ -71,20 +72,15 @@ const hydrate = async (): Promise<void> => {
  * footer reads `Client v1.0.0` - which is both wrong and, since it travels to
  * Ankama on every handshake, a claim no real client makes.
  *
- * `buildVersion` is read out of the bundle that `fetch-game.mjs` actually
- * downloaded, so it cannot drift from what is being served.
+ * `buildVersion` is read out of the bundle the updater actually stored, so it
+ * cannot drift from what is being served.
  */
 const ANDROID_APP_VERSION = '3.14.0'
 
 const hydrateVersions = async (): Promise<void> => {
   rootStore.appStore.setAppVersion(ANDROID_APP_VERSION)
-  try {
-    const response = await fetch('/game/versions.json')
-    const versions = (await response.json()) as { buildVersion?: string }
-    if (versions.buildVersion) rootStore.appStore.setBuildVersion(versions.buildVersion)
-  } catch (error) {
-    console.warn('lindo: no se pudo leer /game/versions.json', error)
-  }
+  const buildVersion = await storedBuildVersion()
+  if (buildVersion) rootStore.appStore.setBuildVersion(buildVersion)
 }
 
 const logger: LindoLogger = {
@@ -236,9 +232,9 @@ export const createWebLindoAPI = async (): Promise<LindoAPI> => {
     subscribeToCloseTab: (notify) => subscribeEverywhere('close-tab', () => notify()),
 
     // ---- updater ----
-    // there is no updater on the web: deploying is updating. The screen that
-    // consumes this simply never advances, which is why nothing routes to it.
-    subscribeToUpdateProgress: () => undefined,
+    subscribeToUpdateProgress: (notify) => {
+      onUpdateProgress(notify)
+    },
 
     // ---- context ----
     fetchGameContext: async (): Promise<GameContext> => ({
@@ -352,7 +348,17 @@ export const createWebLindoAPI = async (): Promise<LindoAPI> => {
 
     // ---- options ----
     resetGameData: () => {
-      detach(storage.clear().then(() => window.location.reload()))
+      // the desktop deletes the game folder and relaunches, which makes the
+      // updater fetch everything again; dropping the stored client does the same
+      detach(forgetGame().then(() => window.location.reload()))
+    },
+    checkGameUpdate: () => {
+      detach(
+        updateGame().then((changed) => {
+          if (changed) window.location.reload()
+          else window.alert('El cliente ya está al día.')
+        })
+      )
     },
     clearCache: () => {
       detach(

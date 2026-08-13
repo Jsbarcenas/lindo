@@ -295,6 +295,14 @@ export class Application {
       }
     })
 
+    ipcMain.on(IPCEvents.CHECK_GAME_UPDATE, () => {
+      logger.debug('Application -> CHECK_GAME_UPDATE')
+      // the updater only runs at startup, and it already downloads just what the
+      // manifests say changed - so asking for a check is asking for a restart
+      app.relaunch()
+      app.quit()
+    })
+
     ipcMain.on(IPCEvents.RESET_GAME_DATA, () => {
       logger.debug('Application -> RESET_GAME_DATA')
       fs.rmSync(GAME_PATH, { recursive: true, force: true })

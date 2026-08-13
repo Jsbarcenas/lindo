@@ -29,6 +29,10 @@ export const OptionGeneral = () => {
     window.lindoAPI.clearCache()
   }
 
+  const handleCheckGameUpdate = () => {
+    window.lindoAPI.checkGameUpdate()
+  }
+
   return (
     <Observer>
       {() => (
@@ -118,6 +122,10 @@ export const OptionGeneral = () => {
               {LL.option.general.gameData()}
             </Typography>
             <Stack alignItems='flex-start' spacing={1}>
+              {/* only takes what the manifests say changed, unlike resetting */}
+              <Button variant='outlined' onClick={handleCheckGameUpdate}>
+                {LL.option.general.checkGameUpdate()}
+              </Button>
               <Button variant='outlined' onClick={handleResetGameData}>
                 {LL.option.general.resetGame()}
               </Button>

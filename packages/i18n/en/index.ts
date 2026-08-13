@@ -129,7 +129,8 @@ const en: BaseTranslation = {
       early: 'Play on Dofus Touch Early',
       restart: 'Apply and restart',
       resetGame: 'Re-download game data',
-      clearCache: 'Clear cache'
+      clearCache: 'Clear cache',
+      checkGameUpdate: 'Check for update'
     },
     shortcuts: {
       title: 'Shortcuts',
