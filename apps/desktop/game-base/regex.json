@@ -1,1 +1,78 @@
-{"build/script.js":[["cdvfile://localhost/persistent/data/assets","../assets"],["return t\\.m = e, t\\.c = i, t\\.p = \"\", t\\(0\\)","window.singletons = t;\nreturn t.m = e, t.c = i, t.p = \"\", t(0)"],["window\\.Config\\.analytics","null"],["(\\w{1,2}\\.overrideConsole\\s?=)\\s?(function\\(\\))","$1 function() {}; !1 && $2"],["(\\w{1,2}\\.logUncaughtExceptions\\s?=)\\s?(function\\()","$1 function() {}; !1 && $2"],["(language:\\s?window\\.Config\\s?\\?[\\s\\S]{1,200}client:\\s?)([^,\n]*)([\\s\\S]{1,200}appVersion:\\s?)([^,\n]*)([\\s\\S]{1,200}buildVersion:\\s?)([^,\n]*)","$1\"android\"$3window._[\"appVersion\"]$5window._[\"buildVersion\"]"],["(var\\s*[a-z]*\\s*=\\s*this,\n*\\s*[a-z]*\\s=\\s*window\\.dofus\\.connectionManager;\n\\s*i.on\\(\"ServersListMessage\",)","window.d = this; \n $1"],["(\\w{1,2}\\.exports\\s?=\\s?(\\w{1,2}),\\s?)(\\w{1,2}\\.prototype\\.setLook)","$1window.CharacterDisplay = $2, $3"],["(, window\\.fetch\\(.+/logger)","; top.console.log(n); return null $1"],["(var (\\w) = {\\s+call: \\w,\\s+data: \\w\\s+};)","$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"],["(}\\), \\w\\.on\\(\\\"data\\\", function\\((\\w)\\) {)","$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"],["Math\\.min\\(Math\\.max\\((\\w),\\s?(\\w)\\),\\s?this\\.maxZoom\\)","Math.max($1, $2)"],["=\\s?\\w\\.viewport(Width|Height)\\s?\\|\\|","="],["new (\\w)\\(document\\.getElementsByClassName\\(\"dofusBody\"\\)\\[0\\]\\)","new $1(document.getElementById(\"dofusBody\"))"],["(\\w{1,2})\\.connectThroughIonicDeepLink = function\\(","window.lindoWebAuth = $1, $1.connectThroughIonicDeepLink = function("],["window\\.cordova \\? \\((\\w{1,2}) = window\\.IonicDeeplink && window\\.cordova\\.plugins && window\\.cordova\\.plugins\\.browsertab \\? \\w{1,2} : \\w{1,2}, (\\w{1,2}) = (\\w{1,2})\\.deepLink\\) : window\\.process && window\\.process\\.type \\? \\(\\w{1,2} = \\w{1,2}, \\w{1,2} = \\w{1,2}\\.deepLink\\) : \\(\\w{1,2} = (\\w{1,2}), \\w{1,2} = \\w{1,2}\\.browserLink, (\\w{1,2}) = !0\\)","(window.lindoBrowserAuth ? ($1 = function(lindoUrl) { if (!window.lindoOpenWebAuth) return console.error(\"Lindo: web auth bridge is missing\"); window.lindoOpenWebAuth(lindoUrl) }, $2 = $3.browserLink, $5 = !0) : ($1 = function(lindoUrl) { if (!window.lindoOpenWebAuth) return console.error(\"Lindo: web auth bridge is missing\"); window.lindoOpenWebAuth(lindoUrl) }, $2 = $3.deepLink))"]],"build/styles-native.css":[["cdvfile://localhost/persistent/data/assets","../assets"]]}
+{
+  "build/script.js": [
+    [
+      "cdvfile://localhost/persistent/data/assets",
+      "../assets"
+    ],
+    [
+      "return t\\.m = e, t\\.c = i, t\\.p = \"\", t\\(0\\)",
+      "window.singletons = t;\nreturn t.m = e, t.c = i, t.p = \"\", t(0)"
+    ],
+    [
+      "window\\.Config\\.analytics",
+      "null"
+    ],
+    [
+      "(\\w{1,2}\\.overrideConsole\\s?=)\\s?(function\\(\\))",
+      "$1 function() {}; !1 && $2"
+    ],
+    [
+      "(\\w{1,2}\\.logUncaughtExceptions\\s?=)\\s?(function\\()",
+      "$1 function() {}; !1 && $2"
+    ],
+    [
+      "(language:\\s?window\\.Config\\s?\\?[\\s\\S]{1,200}client:\\s?)([^,\n]*)([\\s\\S]{1,200}appVersion:\\s?)([^,\n]*)([\\s\\S]{1,200}buildVersion:\\s?)([^,\n]*)",
+      "$1\"android\"$3window._[\"appVersion\"]$5window._[\"buildVersion\"]"
+    ],
+    [
+      "(var\\s*[a-z]*\\s*=\\s*this,\n*\\s*[a-z]*\\s=\\s*window\\.dofus\\.connectionManager;\n\\s*i.on\\(\"ServersListMessage\",)",
+      "window.d = this; \n $1"
+    ],
+    [
+      "(\\w{1,2}\\.exports\\s?=\\s?(\\w{1,2}),\\s?)(\\w{1,2}\\.prototype\\.setLook)",
+      "$1window.CharacterDisplay = $2, $3"
+    ],
+    [
+      "(, window\\.fetch\\(.+/logger)",
+      "; top.console.log(n); return null $1"
+    ],
+    [
+      "(var (\\w) = {\\s+call: \\w,\\s+data: \\w\\s+};)",
+      "$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"
+    ],
+    [
+      "(}\\), \\w\\.on\\(\\\"data\\\", function\\((\\w)\\) {)",
+      "$1 window.top.FileLoggerLib && window.top.FileLoggerLib.writeLindoLog($2);"
+    ],
+    [
+      "Math\\.min\\(Math\\.max\\((\\w),\\s?(\\w)\\),\\s?this\\.maxZoom\\)",
+      "Math.max($1, $2)"
+    ],
+    [
+      "=\\s?\\w\\.viewport(Width|Height)\\s?\\|\\|",
+      "="
+    ],
+    [
+      "new (\\w)\\(document\\.getElementsByClassName\\(\"dofusBody\"\\)\\[0\\]\\)",
+      "new $1(document.getElementById(\"dofusBody\"))"
+    ],
+    [
+      "(\\w{1,2})\\.connectThroughIonicDeepLink = function\\(",
+      "window.lindoWebAuth = $1, $1.connectThroughIonicDeepLink = function("
+    ],
+    [
+      "window\\.cordova \\? \\((\\w{1,2}) = window\\.IonicDeeplink && window\\.cordova\\.plugins && window\\.cordova\\.plugins\\.browsertab \\? \\w{1,2} : \\w{1,2}, (\\w{1,2}) = (\\w{1,2})\\.deepLink\\) : window\\.process && window\\.process\\.type \\? \\(\\w{1,2} = \\w{1,2}, \\w{1,2} = \\w{1,2}\\.deepLink\\) : \\(\\w{1,2} = (\\w{1,2}), \\w{1,2} = \\w{1,2}\\.browserLink, (\\w{1,2}) = !0\\)",
+      "(window.lindoBrowserAuth ? ($1 = function(lindoUrl) { if (!window.lindoOpenWebAuth) return console.error(\"Lindo: web auth bridge is missing\"); window.lindoOpenWebAuth(lindoUrl) }, $2 = $3.browserLink, $5 = !0) : ($1 = function(lindoUrl) { if (!window.lindoOpenWebAuth) return console.error(\"Lindo: web auth bridge is missing\"); window.lindoOpenWebAuth(lindoUrl) }, $2 = $3.deepLink))"
+    ],
+    [
+      "setHaapiAccountId\\((\\w{1,2})\\.account_id, \\{\\s*save: (\\w{1,2})\\.save\\s*\\}\\), (\\w{1,2})\\(null, (\\w{1,2})\\)",
+      "setHaapiAccountId($1.account_id, { save: $2.save }), $3(null, $1)"
+    ]
+  ],
+  "build/styles-native.css": [
+    [
+      "cdvfile://localhost/persistent/data/assets",
+      "../assets"
+    ]
+  ]
+}
