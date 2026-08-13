@@ -57,7 +57,13 @@ export const REAL_ANDROID = {
       manufacturer: 'Google',
       uuid: 'aaaaaaaaaaaaaaaa',
       cordova: '12.0.1',
-      isVirtual: false
+      isVirtual: false,
+      serial: 'unknown'
+    },
+    cordovaPlugins: ['Keyboard', 'screenorientation'],
+    cordovaGlobals: {
+      expected: ['StatusBar', 'store', 'Adjust', 'IonicDeeplink'],
+      present: ['StatusBar', 'store', 'Adjust', 'IonicDeeplink']
     },
     webgl1: { vendor: 'ARM', renderer: 'Mali-G715-Immortalis MC11' },
     webgl2: { vendor: 'ARM', renderer: 'Mali-G715-Immortalis MC11' },
@@ -73,6 +79,7 @@ export const REAL_ANDROID = {
     getParameterSource: 'function getParameter() { [native code] }',
     nonNativeFunctions: [],
     iframePlatform: 'Linux armv8l',
+    parentPlatform: 'Linux armv8l',
     workerPlatform: 'Linux armv8l',
     stackSample: 'Error: probe\n    at https://example.test/probe.js:1:1'
   }
@@ -109,6 +116,8 @@ export const HOST_MACOS = {
     uaDataTag: '[object NavigatorUAData]',
     uaDataHighEntropy: { platform: 'macOS', model: '', platformVersion: '15.6.0' },
     device: null,
+    cordovaPlugins: null,
+    cordovaGlobals: { expected: ['StatusBar', 'store', 'Adjust', 'IonicDeeplink'], present: [] },
     webgl1: { vendor: 'Google Inc. (Apple)', renderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro)' },
     webgl2: { vendor: 'Google Inc. (Apple)', renderer: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro)' },
     gpuAdapter: { vendor: 'apple', architecture: 'metal-3' },
@@ -123,6 +132,7 @@ export const HOST_MACOS = {
     getParameterSource: 'function getParameter() { [native code] }',
     nonNativeFunctions: [],
     iframePlatform: 'MacIntel',
+    parentPlatform: 'MacIntel',
     workerPlatform: 'MacIntel',
     stackSample: 'Error: probe\n    at file:///Users/x/app.asar/probe.js:1:1'
   }
@@ -144,6 +154,7 @@ export const SPOOFED_DETECTABLY = {
     getParameterSource: 'function (parameter) { if (parameter === 37445) return ...; }',
     nonNativeFunctions: ['WebGLRenderingContext.prototype.getParameter'],
     iframePlatform: 'MacIntel',
+    parentPlatform: 'MacIntel',
     workerPlatform: 'MacIntel'
   }
 }

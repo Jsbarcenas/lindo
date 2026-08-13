@@ -159,6 +159,23 @@
 
       device: safe(function () { return window.device ? JSON.parse(JSON.stringify(window.device)) : null }, null),
       cordovaPlugins: safe(function () { return window.cordova ? Object.keys(window.cordova.plugins || {}) : null }, null),
+      windowPlugins: safe(function () { return window.plugins ? Object.keys(window.plugins) : null }, null),
+      // globals the official Android client always installs, read from its own
+      // cordova_plugins.js - anything absent here is a plugin the real app has
+      // and this one does not
+      cordovaGlobals: safe(function () {
+        var names = [
+          'StatusBar', 'MobileAccessibility', 'powerManagement', 'wizAssets', 'requestFileSystem',
+          'Media', 'File', 'FileReader', 'DirectoryEntry', 'store', 'Adjust', 'AdjustConfig',
+          'IonicDeeplink', 'AppSettings', 'Connection', 'LaunchReview', 'appAvailability',
+          'gamecenter', 'navigationbar', 'MobileAccessibilityNotifications'
+        ]
+        var present = []
+        for (var i = 0; i < names.length; i++) {
+          if (typeof window[names[i]] !== 'undefined') present.push(names[i])
+        }
+        return { expected: names, present: present }
+      }, null),
 
       webgl1: glInfo('webgl'),
       webgl2: glInfo('webgl2'),
@@ -197,6 +214,11 @@
       }, null),
       nonNativeFunctions: nonNativeFunctions(),
       iframePlatform: iframePlatform(),
+      // the realm above this one is reachable from inside the frame, so it is
+      // one more place the host can answer from
+      parentPlatform: safe(function () {
+        return window.top === window ? null : window.top.navigator.platform
+      }, null),
       stackSample: safe(function () { return new Error('probe').stack }, null)
     }
 

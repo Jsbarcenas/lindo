@@ -19,6 +19,36 @@ const verdict = (id, family, fixable, ok, observed, expected) => ({
   fixable
 })
 
+/**
+ * What the bundle's platform module reads off `window.device`, in its order.
+ *
+ *   t.identifier = [c.cordova || "", c.isVirtual || "", c.model || "", d,
+ *                   c.version || "", c.uuid || "", c.serial || ""].join("|")
+ *
+ * Taken from the module itself rather than guessed, which is how `serial`
+ * turned up: it feeds the identifier the game reports, and nothing here was
+ * checking it.
+ */
+const DEVICE_FIELDS = ['cordova', 'isVirtual', 'model', 'platform', 'version', 'uuid', 'serial']
+
+/**
+ * What `cordova.plugins` holds in the official Android client.
+ *
+ * Read out of the shipped `assets/www/cordova_plugins.js` in the store build
+ * (com.ankama.dofustouch 3.14.0) rather than guessed. Note what is not here:
+ * `isemulator`, which this project has been exposing. A plugin the real client
+ * does not ship identifies this build just as well as a missing one does.
+ */
+const CORDOVA_PLUGINS = ['Keyboard', 'Yanap', 'browsertab', 'screenorientation']
+
+/**
+ * The two of those the bundle would really use, so a stub that answers without
+ * working takes audio and the login tab with it. They are reported separately
+ * rather than folded into the failure above: this is a decision that was made,
+ * not a gap nobody noticed.
+ */
+const CORDOVA_PLUGINS_LEFT_ABSENT = ['Yanap', 'browsertab']
+
 /** fonts that ship with macOS and are absent from Android */
 const MACOS_ONLY_FONTS = ['Helvetica Neue', 'SF Pro Text', 'Lucida Grande', 'Geneva']
 /** speech voices macOS installs by default */
@@ -67,10 +97,62 @@ export const JS_SIGNALS = [
     id: 'js.device',
     run: (ctx) => {
       const device = ctx.js.device
-      const required = ['platform', 'version', 'model', 'manufacturer', 'uuid', 'cordova', 'isVirtual']
-      const missing = device ? required.filter((key) => device[key] === undefined) : required
+      // exactly the fields the bundle's platform module reads off window.device,
+      // in the order it reads them. `manufacturer` is not among them; `serial`
+      // is, and was missing from this list until the module was read properly.
+      const missing = device ? DEVICE_FIELDS.filter((key) => device[key] === undefined) : DEVICE_FIELDS
       const ok = device?.platform === 'Android' && missing.length === 0
-      return verdict('js.device', 'D', 'client', ok, device ? JSON.stringify(device) : undefined, 'full Cordova device object')
+      const observed = device ? JSON.stringify(device) : undefined
+      return verdict('js.device', 'D', 'client', ok, observed, `Cordova device carrying ${DEVICE_FIELDS.join(', ')}`)
+    }
+  },
+  {
+    id: 'js.device.identifier',
+    run: (ctx) => {
+      const device = ctx.js.device
+      if (!device) return verdict('js.device.identifier', 'D', 'client', false, undefined, 'a populated identifier')
+
+      // the bundle joins these into one string and treats it as the device
+      // identity, so an empty segment is a hole in what it reports upstream
+      const identifier = DEVICE_FIELDS.map((key) => device[key] || '').join('|')
+      // isVirtual is false on a real device too, and `false || ''` is empty
+      // there as well, so it is the one segment allowed to be blank
+      const blank = DEVICE_FIELDS.filter((key) => key !== 'isVirtual' && !device[key])
+      return verdict('js.device.identifier', 'D', 'client', blank.length === 0, identifier, 'no empty segment but isVirtual')
+    }
+  },
+  {
+    id: 'js.cordova.plugins',
+    run: (ctx) => {
+      const keys = ctx.js.cordovaPlugins
+      if (!keys) return verdict('js.cordova.plugins', 'D', 'client', false, undefined, CORDOVA_PLUGINS.join(', '))
+      const missing = CORDOVA_PLUGINS.filter(
+        (name) => !keys.includes(name) && !CORDOVA_PLUGINS_LEFT_ABSENT.includes(name)
+      )
+      // an extra one is its own kind of tell: it is a plugin no copy of the real
+      // client ships, so its presence identifies this build rather than hiding it
+      const extra = keys.filter((name) => !CORDOVA_PLUGINS.includes(name))
+      const ok = missing.length === 0 && extra.length === 0
+      const observed = `${keys.join(',')}${missing.length ? ` | missing: ${missing.join(',')}` : ''}${
+        extra.length ? ` | extra: ${extra.join(',')}` : ''
+      }`
+      return verdict('js.cordova.plugins', 'D', 'client', ok, observed, CORDOVA_PLUGINS.join(', '))
+    }
+  },
+  {
+    id: 'js.cordova.globals',
+    run: (ctx) => {
+      const collected = ctx.js.cordovaGlobals
+      if (!collected) return verdict('js.cordova.globals', 'D', 'client', false, undefined, 'the official plugin globals')
+      const missing = collected.expected.filter((name) => !collected.present.includes(name))
+      return verdict(
+        'js.cordova.globals',
+        'D',
+        'client',
+        missing.length === 0,
+        `${collected.present.length}/${collected.expected.length} present, missing: ${missing.join(',') || '(none)'}`,
+        'every global the official client installs'
+      )
     }
   },
   {
@@ -170,6 +252,26 @@ export const JS_SIGNALS = [
       // shows up here and nowhere else
       const ok = ctx.js.iframePlatform === 'Linux armv8l'
       return verdict('m.iframe.escape', 'M', 'client', ok, ctx.js.iframePlatform, 'Linux armv8l inside a new iframe')
+    }
+  },
+  {
+    id: 'm.parent.escape',
+    run: (ctx) => {
+      // null means the probe ran at the top, where there is no parent to ask -
+      // not that the check passed
+      if (ctx.js.parentPlatform === null || ctx.js.parentPlatform === undefined) {
+        return {
+          id: 'm.parent.escape',
+          layer: 'js',
+          family: 'M',
+          verdict: 'MISSING',
+          observed: null,
+          expected: 'run inside the game frame to have a parent to read',
+          fixable: 'client'
+        }
+      }
+      const ok = ctx.js.parentPlatform === 'Linux armv8l'
+      return verdict('m.parent.escape', 'M', 'client', ok, ctx.js.parentPlatform, 'Linux armv8l in top.navigator')
     }
   },
   {
