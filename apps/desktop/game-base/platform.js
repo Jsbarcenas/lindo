@@ -224,6 +224,128 @@
   }
 
   /**
+   * Families that ship with macOS and do not exist on Android.
+   *
+   * Apple Color Emoji is deliberately not here. Measurement is what gets
+   * redirected below, not drawing, so putting an emoji font on this list would
+   * make the game measure one width and paint another - and emoji really do
+   * appear in chat.
+   */
+  var HOST_ONLY_FONTS = [
+    'helvetica neue', 'lucida grande', 'geneva', 'monaco', 'menlo',
+    'sf pro text', 'sf pro display', 'sf mono', 'apple chancery', 'applegothic',
+    'american typewriter', 'andale mono', 'avenir', 'avenir next', 'baskerville',
+    'big caslon', 'chalkboard', 'chalkduster', 'charter', 'cochin', 'copperplate',
+    'didot', 'futura', 'gill sans', 'herculanum', 'hoefler text', 'marker felt',
+    'noteworthy', 'optima', 'papyrus', 'phosphate', 'rockwell', 'savoye let',
+    'skia', 'superclarendon', 'trattatello', 'zapfino'
+  ]
+
+  /**
+   * Splits a CSS font shorthand at the size, so what follows is the family list.
+   *
+   * Anchored on the size *and its unit*, not on a digit: `(?:\d|\))` matched the
+   * `7` of `72px` and handed back "2px ..." as the family, so nothing was ever
+   * recognised and the whole redirection below did nothing at all.
+   */
+  var FONT_SIZE = /\d[\d.]*(?:px|pt|pc|in|cm|mm|em|rem|ex|ch|q|vw|vh|vmin|vmax|%)(?:\s*\/\s*[^\s]+)?\s+(.+)$/i
+
+  var firstFamily = function (fontShorthand) {
+    var match = FONT_SIZE.exec(String(fontShorthand))
+    if (!match) return null
+    return match[1].split(',')[0].trim().replace(/^["']|["']$/g, '').toLowerCase()
+  }
+
+  var isHostOnly = function (family) {
+    return family !== null && HOST_ONLY_FONTS.indexOf(family) !== -1
+  }
+
+  /** the same declaration with its first family dropped, as Android would resolve it */
+  var withoutFirstFamily = function (fontShorthand) {
+    var text = String(fontShorthand)
+    var match = FONT_SIZE.exec(text)
+    if (!match) return text
+    var families = match[1].split(',')
+    families.shift()
+    var rest = families.join(',').trim()
+    return text.slice(0, text.length - match[1].length) + (rest || 'sans-serif')
+  }
+
+  /**
+   * Font enumeration.
+   *
+   * Asking whether a family exists is done by measuring text in it and comparing
+   * against a fallback: the widths differ only when the font is installed. So the
+   * host's fonts answer for it, and macOS ones are as good as a name tag.
+   *
+   * Only measurements naming a family Android does not have are redirected, which
+   * is why the list above is explicit rather than an allowlist. The game measures
+   * text constantly to lay out its interface, and it never asks for Zapfino - so
+   * nothing it does goes through this branch, while a script probing for macOS
+   * gets the width it would get on a phone.
+   *
+   * What this does not cover: a family named only in a stylesheet and measured
+   * through the layout engine. Catching that means intercepting offsetWidth,
+   * which the game uses everywhere and which is not worth breaking for one signal.
+   */
+  var installFonts = function (win) {
+    var contextProto = win.CanvasRenderingContext2D && win.CanvasRenderingContext2D.prototype
+    if (contextProto && contextProto.measureText) {
+      var originalMeasure = contextProto.measureText
+      var replacement = function measureText(text) {
+        if (!isHostOnly(firstFamily(this.font))) return originalMeasure.apply(this, arguments)
+        var saved = this.font
+        try {
+          this.font = withoutFirstFamily(saved)
+          return originalMeasure.call(this, text)
+        } finally {
+          this.font = saved
+        }
+      }
+      defineMethod(contextProto, 'measureText', replacement)
+    }
+
+    // the direct question, which needs no measuring at all
+    if (win.document.fonts && win.document.fonts.check) {
+      var fontsProto = Object.getPrototypeOf(win.document.fonts)
+      var originalCheck = fontsProto.check
+      var checkReplacement = function check(font) {
+        if (isHostOnly(firstFamily(font))) return false
+        return originalCheck.apply(this, arguments)
+      }
+      defineMethod(fontsProto, 'check', checkReplacement)
+    }
+
+    // an inline style naming one of these renders and measures as the fallback,
+    // so DOM-based probes see the same answer without offsetWidth being touched
+    var styleProto = win.CSSStyleDeclaration && win.CSSStyleDeclaration.prototype
+    if (styleProto) {
+      var descriptor = Object.getOwnPropertyDescriptor(styleProto, 'fontFamily')
+      if (descriptor && descriptor.set) {
+        var originalSet = descriptor.set
+        var familySetter = function (value) {
+          var families = String(value).split(',')
+          var kept = []
+          for (var i = 0; i < families.length; i++) {
+            var name = families[i].trim().replace(/^["']|["']$/g, '').toLowerCase()
+            if (HOST_ONLY_FONTS.indexOf(name) === -1) kept.push(families[i])
+          }
+          return originalSet.call(this, kept.length ? kept.join(',') : 'sans-serif')
+        }
+        fakeSource.set(familySetter, 'function set fontFamily() { [native code] }')
+        try {
+          Object.defineProperty(styleProto, 'fontFamily', {
+            get: descriptor.get,
+            set: familySetter,
+            enumerable: descriptor.enumerable,
+            configurable: true
+          })
+        } catch (error) {}
+      }
+    }
+  }
+
+  /**
    * @param options.inputTraits set false to leave touch, pointer media queries
    *   and orientation alone. The renderer that hosts the game frame is reachable
    *   from inside it (`top.navigator`), so it needs the same identity - but it
@@ -425,6 +547,7 @@
 
       if (!(options && options.cordovaSurface === false)) installCordovaSurface(win)
 
+      installFonts(win)
       installFrameHook(win, profile)
       installWorker(win, profile)
     } catch (error) {

@@ -219,8 +219,12 @@ export const JS_SIGNALS = [
   {
     id: 'js.fonts',
     run: (ctx) => {
+      // Only the macOS side is graded. The mirror question - whether Roboto and
+      // Noto are present, as they would be on a phone - is left ungraded on
+      // purpose: making a font that is not installed measure as though it were
+      // means inventing its metrics, and there is no honest way to do that.
       const present = (ctx.js.fonts ?? []).filter((name) => MACOS_ONLY_FONTS.includes(name))
-      return verdict('js.fonts', 'D', 'no', present.length === 0, present.join(',') || '(none)', 'no macOS-only fonts')
+      return verdict('js.fonts', 'D', 'client', present.length === 0, present.join(',') || '(none)', 'no macOS-only fonts')
     }
   },
   {
