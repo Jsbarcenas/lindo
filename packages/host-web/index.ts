@@ -6,6 +6,7 @@ export * from './api'
 export * from './game-updater'
 export * from './hotkeys'
 export * from './profile'
+export * from './web-auth'
 
 const RELOADED_FOR_WORKER = 'lindo:reloaded-for-worker'
 

@@ -119,11 +119,28 @@ Lo que se probó, en este orden:
 
 Así que el login es posible pero el `code` aterriza en
 `dt-proxy…/?code=` — el dominio de Ankama, ilegible desde nuestro origen. El
-host abre el login en un popup (o toma la pestaña si lo bloquean) y al volver
-pide pegar esa URL; extrae el `code` y lo inyecta en `gameSrc`, de donde el
-propio cliente lo lee con la bandera que el parche activa.
+host abre el login en un popup (o toma la pestaña si lo bloquean), recoge el
+`code` y lo inyecta en `gameSrc`, de donde el propio cliente lo lee con la
+bandera que el parche activa.
 
-**Un pegado manual es el único paso del flujo de escritorio que no sobrevive.**
+Ni el propio build de Electron de Ankama resuelve esto: lo esquiva sondeando
+`popup.location.search` y llamando a `eval` dentro del popup para raspar la URL
+final de la página de éxito. Las dos cosas son lecturas cross-origin que sólo
+funcionan sin seguridad web, que es justo lo que una página no tiene.
+
+**Copiar esa URL una vez es lo único del flujo de escritorio que no sobrevive.**
+Lo demás sí: `web-auth.ts` vigila el portapapeles mientras el login está en
+curso, así que volver a la pestaña —o pegar una vez— termina el login y cierra
+el popup. Tres rutas, porque ninguna cubre lo que cubren las otras:
+
+| Ruta | Necesita | Cubre |
+|---|---|---|
+| Evento `paste` en el documento | nada | siempre, cualquier navegador |
+| Lectura silenciosa al recibir el foco | permiso `clipboard-read` | logins posteriores, sin tocar nada |
+| Campo de texto y botón | un clic | Firefox, Safari, y quien niegue el permiso |
+
+La lectura silenciosa sólo acepta la forma `?code=`; el campo, donde la
+intención es explícita, acepta también el código suelto.
 
 ## Fase 5 · Despliegue — **hecha**, y sirve Vercel o Railway
 
