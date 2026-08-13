@@ -8,12 +8,15 @@
  * bloquea la llamada de cuenta que sigue al login. Servidor contra servidor no
  * hay CORS que fallar.
  *
- * Esto lo hacía un rewrite de la plataforma en `vercel.json`, apuntando
- * directamente a `haapi.ankama.com`. No servía: con la misma clave y en el
- * mismo minuto, directo devolvía 200 y por el rewrite 403 `Unauthorized
- * service` - exactamente la misma respuesta que sin mandar clave ninguna. La
- * `apikey` no llegaba al otro lado. Aquí las cabeceras se reenvían a mano, que
- * es lo que ya hacían las otras dos versiones.
+ * Esto lo hacía un rewrite de la plataforma apuntando directamente a
+ * haapi.ankama.com. No servía: con la misma clave y en el mismo minuto,
+ * directo devolvía 200 y por el rewrite 403 `Unauthorized service` - idéntico
+ * a no mandar clave ninguna. La `apikey` no llegaba al otro lado.
+ *
+ * La ruta llega en el parámetro `upstream` en vez de por un fichero
+ * `[...path]`. Un comodín de ese estilo es la forma idiomática, pero exige que
+ * la plataforma reconozca esa sintaxis fuera de Next.js, y eso es justo lo que
+ * no se puede comprobar sin desplegar. Un fichero plano no depende de nada.
  */
 export const config = { runtime: 'edge' }
 
@@ -38,9 +41,12 @@ const forwardable = (name) => !DROP.has(name) && !name.startsWith('x-vercel-') &
 
 export default async function handler(request) {
   const url = new URL(request.url)
-  // el rewrite entra como /api/haapi/…, pero la función también responde en su
-  // propia ruta; quitar los dos prefijos deja la misma URL en ambos casos
-  const path = url.pathname.replace(/^\/api\/haapi/, '').replace(/^\/haapi/, '')
+
+  // el rewrite mete la ruta aquí; el resto de la query es la que traía la
+  // petición original, y esa viaja tal cual
+  const path = url.searchParams.get('upstream') ?? ''
+  url.searchParams.delete('upstream')
+  const query = url.searchParams.toString()
 
   const headers = new Headers()
   for (const [name, value] of request.headers) {
@@ -48,8 +54,10 @@ export default async function handler(request) {
   }
 
   const hasBody = !['GET', 'HEAD'].includes(request.method)
+  const target = `${UPSTREAM}/${path.replace(/^\/+/, '')}${query ? `?${query}` : ''}`
+
   try {
-    const upstream = await fetch(UPSTREAM + path + url.search, {
+    const upstream = await fetch(target, {
       method: request.method,
       headers,
       body: hasBody ? await request.arrayBuffer() : undefined,
