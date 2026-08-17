@@ -674,6 +674,18 @@
         <span class="causa">La copia del cliente a los recursos del APK <b>vivía dentro del script de release</b>, así que el modo desarrollo levantaba el servidor interno sin nada que servir.</span>
       </div>
       <div class="fallo">
+        <span class="sintoma">El carrusel de noticias, tres recuadros vacíos</span>
+        <span class="causa">Las imágenes viven detrás de una lista blanca de referers, y el cliente real corre sobre <code>file://</code> sin mandar ninguno. Lo difícil vino después: declarar <code>Referrer-Policy</code> en el documento <b>no gobierna las peticiones que nacen de CSS</b>, y el carrusel las pide con <code>background-image</code>. La misma URL, en el mismo documento, sale con dos políticas distintas según quién la pida.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">Un arreglo que parecía funcionar y no funcionaba</span>
+        <span class="causa">Ese mismo. Se verificó con <code>new Image()</code> — <b>justo el único camino que ya funcionaba</b>—, así que la comprobación salía verde mientras el fallo seguía intacto. Lo resolvió el service worker, reemitiendo esas peticiones con <code>no-referrer</code>: eso vale venga de donde venga.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">Arreglos del cliente que no llegaban al APK</span>
+        <span class="causa">El empaquetado <b>solo recompilaba la web si faltaba <code>dist</code></b>, así que metía en el APK lo que hubiera quedado de antes. Se arreglaba algo, se reinstalaba, y el aparato seguía con el cliente viejo sin que nada lo señalara.</span>
+      </div>
+      <div class="fallo">
         <span class="sintoma">403 al llamar a la cuenta desde la web alojada</span>
         <span class="causa">Tres diagnósticos, y los dos primeros equivocados. No era que la cabecera no llegase —una sonda demostró que sí—, sino <b>desde dónde salía la petición</b>.</span>
       </div>
