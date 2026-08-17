@@ -196,7 +196,18 @@ export type ConnectionManagerEvents = {
   MapComplementaryInformationsDataMessage: (msg: MapComplementaryInformationsDataMessage) => void
   ChatServerMessage: (msg: ChatMessage) => void
   TaxCollectorAttackedMessage: (tax: TaxMessage) => void
-  GameRolePlayArenaFightPropositionMessage: (e: unknown) => void
+  /**
+   * La propuesta de partida del emparejamiento.
+   *
+   * Sustituye a `GameRolePlayArenaFightPropositionMessage`, que ya no existe en
+   * el cliente: Ankama movió el Kolizeum al sistema de matchmaking. El mensaje
+   * lleva `matchmakingFeature` y cubre Kolizeum 1v1 y 3v3, búsqueda de grupo de
+   * mazmorra y laberinto - todas son "acepta antes de que se acabe el tiempo",
+   * así que la notificación vale para las cuatro. Filtrar por feature exigiría
+   * resolver un enum ofuscado, y acertar por aproximación es justo como esto se
+   * rompió sin que nadie se enterara.
+   */
+  MatchmakingProposalMatchMessage: (e: unknown) => void
   PartyInvitationMessage: (msg: PartyInvitationMessage) => void
   GameRolePlayAggressionMessage: (msg: GameRolePlayAggressionMessage) => void
   TextInformationMessage: (msg: TextInformationMessage) => void

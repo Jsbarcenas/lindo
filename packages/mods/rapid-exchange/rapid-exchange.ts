@@ -13,7 +13,7 @@ import {
 import { TranslationFunctions } from '@lindo/i18n'
 import { RootStore } from '@lindo/client-store'
 import { Mod } from '../mod'
-import { EventManager } from '../helpers'
+import { EventManager, contain } from '../helpers'
 
 /**
  * Allow the user to hold "control" key and double click
@@ -84,12 +84,19 @@ export class RapidExchangeMod extends Mod {
       }
     }
 
-    this.wGame.addEventListener('keydown', keydown, true)
-    this.wGame.addEventListener('keyup', keyup, true)
+    // Envueltos: los invoca el frame del juego, y una excepción suya acabaría en
+    // el reporte de errores de Ankama con la cuenta del jugador adjunta.
+    const guardedKeydown = contain(keydown, 'keydown')
+    const guardedKeyup = contain(keyup, 'keyup')
+
+    this.wGame.addEventListener('keydown', guardedKeydown, true)
+    this.wGame.addEventListener('keyup', guardedKeyup, true)
 
     this._disposers.push(() => {
-      this.wGame.removeEventListener('keydown', keydown)
-      this.wGame.removeEventListener('keyup', keyup)
+      // el `true` también aquí: `removeEventListener` solo quita el listener si
+      // la fase coincide, así que sin él estos dos no se quitaban nunca
+      this.wGame.removeEventListener('keydown', guardedKeydown, true)
+      this.wGame.removeEventListener('keyup', guardedKeyup, true)
     })
   }
 

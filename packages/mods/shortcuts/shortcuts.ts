@@ -5,7 +5,7 @@ import { TranslationFunctions } from '@lindo/i18n'
 import { GameInterfaceHotkey } from '@lindo/shared'
 import { IArrayDidChange, IObjectDidChange, Lambda, observe } from 'mobx'
 import { IAnyType, IMSTArray } from 'mobx-state-tree'
-import { ignoreKeyboardEvent } from '../helpers'
+import { contain, ignoreKeyboardEvent } from '../helpers'
 import { Mod } from '../mod'
 import { Mover } from './mover'
 
@@ -262,30 +262,42 @@ export class ShortcutsMod extends Mod {
       }
     }
 
-    this.wGame.addEventListener('keydown', escapeListener)
-    this._disposers.push(() => this.wGame.removeEventListener('keydown', escapeListener))
+    // Envueltos porque los invoca el frame del juego: una excepción aquí subiría
+    // a su `window.onerror`, que el cliente reporta al servidor de Ankama junto
+    // al accountId. Se engancha y se quita el envoltorio, no el original.
+    const guardedEscape = contain(escapeListener, 'keydown')
+    this.wGame.addEventListener('keydown', guardedEscape)
+    this._disposers.push(() => this.wGame.removeEventListener('keydown', guardedEscape))
 
     // Monster tooltips
+    //
+    // La opción se lee dentro del manejador, no al montarlo: así desmarcarla
+    // surte efecto en el momento, igual que `activeOpenMenu` aquí arriba. Antes
+    // no se leía en absoluto y la casilla de ajustes no hacía nada - la función
+    // estaba siempre activa.
     const showMonsterTooltips = (e: KeyboardEvent) => {
       if (
+        this.rootStore.optionStore.gameFight.monsterTooltip &&
         e.key.toLocaleUpperCase() === gameActionHotkey.showMonsterTooltips.toLocaleUpperCase() &&
         this.wGame.foreground._monsterTooltips.length === 0
       )
-        this.wGame.foreground.showAllMonsterGroupTooltips()
+        this.wGame.foreground.showAllMonsterGroupAndNpcTooltips()
     }
     const hideMonsterTooltips = (e: KeyboardEvent) => {
       if (
         e.key.toLocaleUpperCase() === gameActionHotkey.showMonsterTooltips.toLocaleUpperCase() &&
         this.wGame.foreground._monsterTooltips.length > 0
       )
-        this.wGame.foreground.removeAllMonsterGroupTooltips()
+        this.wGame.foreground.removeAllMonsterGroupAndNpcTooltips()
     }
 
-    this.wGame.addEventListener('keydown', showMonsterTooltips)
-    this.wGame.addEventListener('keyup', hideMonsterTooltips)
+    const guardedShow = contain(showMonsterTooltips, 'keydown')
+    const guardedHide = contain(hideMonsterTooltips, 'keyup')
+    this.wGame.addEventListener('keydown', guardedShow)
+    this.wGame.addEventListener('keyup', guardedHide)
 
-    this._disposers.push(() => this.wGame.removeEventListener('keydown', showMonsterTooltips))
-    this._disposers.push(() => this.wGame.removeEventListener('keyup', hideMonsterTooltips))
+    this._disposers.push(() => this.wGame.removeEventListener('keydown', guardedShow))
+    this._disposers.push(() => this.wGame.removeEventListener('keyup', guardedHide))
   }
 
   destroy() {

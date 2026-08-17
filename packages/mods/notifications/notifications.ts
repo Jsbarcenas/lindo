@@ -57,9 +57,12 @@ export class NotificationsMod extends Mod {
       }
     )
 
-    this._eventManager.on<ConnectionManagerEvents, 'GameRolePlayArenaFightPropositionMessage'>(
+    // `GameRolePlayArenaFightPropositionMessage` desapareció del cliente cuando
+    // Ankama movió el Kolizeum al emparejamiento. El listener seguía puesto y no
+    // saltaba nunca: la notificación llevaba tiempo muerta sin dar señal.
+    this._eventManager.on<ConnectionManagerEvents, 'MatchmakingProposalMatchMessage'>(
       this.wGame.dofus.connectionManager,
-      'GameRolePlayArenaFightPropositionMessage',
+      'MatchmakingProposalMatchMessage',
       () => {
         this._sendKolizeumNotif()
       }

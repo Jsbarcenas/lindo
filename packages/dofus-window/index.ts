@@ -19,8 +19,17 @@ export interface DofusWindow extends Window {
   foreground: {
     rootElement: HTMLDivElement
     _monsterTooltips: []
-    showAllMonsterGroupTooltips: () => void
-    removeAllMonsterGroupTooltips: () => void
+    /**
+     * Los tooltips de grupos de monstruos, que ahora incluyen a los NPC.
+     *
+     * Se llamaban `showAllMonsterGroupTooltips` y `removeAllMonsterGroupTooltips`
+     * hasta que Ankama los amplió y los renombró. Los nombres viejos no existen
+     * en el cliente, así que la función llevaba tiempo lanzando un TypeError en
+     * cuanto se pulsaba la tecla - y sin dar más señal que el fallo yéndose al
+     * reporte de errores de Ankama.
+     */
+    showAllMonsterGroupAndNpcTooltips: () => void
+    removeAllMonsterGroupAndNpcTooltips: () => void
   }
   gui: GUI
   isoEngine: IsoEngine

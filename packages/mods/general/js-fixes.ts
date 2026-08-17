@@ -1,6 +1,7 @@
 import { DofusWindow, IScroll, MapScene, WorldMap } from '@lindo/dofus-window'
 import { RootStore } from '@lindo/client-store'
 import { TranslationFunctions } from '@lindo/i18n'
+import { contain } from '../helpers'
 import { Mod } from '../mod'
 
 export class JsFixesMod extends Mod {
@@ -20,7 +21,7 @@ export class JsFixesMod extends Mod {
       event.preventDefault()
     }
     const canvas = this.wGame.document.getElementById('mapScene-canvas') as HTMLCanvasElement
-    canvas.addEventListener('webglcontextlost', onWebGLContextLost as never, false)
+    canvas.addEventListener('webglcontextlost', contain(onWebGLContextLost) as never, false)
 
     this._disposers.push(() => {
       canvas.removeEventListener('webglcontextlost', onWebGLContextLost as never)
