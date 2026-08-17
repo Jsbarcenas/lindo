@@ -440,6 +440,123 @@
   </section>
 
   <section>
+    <h2>Las dos capas de identidad</h2>
+    <p>
+      Los parches hacen que el cliente se identifique como Android. Conviene decir
+      exactamente hasta dónde llega eso, porque hay <strong>dos capas</strong> y solo se
+      controla una.
+    </p>
+    <p>
+      La capa de JavaScript es lo que el código del juego puede inspeccionar, y ahí todo
+      encaja: <code>navigator.userAgent</code>, <code>userAgentData</code>, el objeto
+      <code>device</code> de Cordova, el renderizador de WebGL, los puntos táctiles.
+      Leído en vivo del cliente desplegado, se ve un Samsung Galaxy A54 con Android 14 y
+      una GPU Mali-G68.
+    </p>
+    <p>
+      La capa de red es lo que el navegador manda por HTTP, y ahí no se llega.
+      <code>User-Agent</code> y las cabeceras <code>Sec-CH-UA</code> son
+      <em>forbidden header names</em>: el navegador prohíbe por diseño que una página las
+      modifique. Un <code>defineProperty</code> sobre <code>navigator</code> cambia lo
+      que lee el JavaScript y nada más.
+    </p>
+
+    <div class="tabla-envoltorio">
+      <table>
+        <thead>
+          <tr><th>Versión</th><th>Capa JavaScript</th><th>Capa de red</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="origen">Electron</td>
+            <td>Android</td>
+            <td class="si">Android — el proceso principal fija la cabecera de sesión</td>
+          </tr>
+          <tr>
+            <td class="origen">APK</td>
+            <td>Android</td>
+            <td class="si">Android — lo es de verdad</td>
+          </tr>
+          <tr>
+            <td class="origen">Web</td>
+            <td>Android</td>
+            <td class="no">el navegador real — macOS, Chrome de escritorio</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      La web es la única con desfase, y es estructural, no un descuido. Hay además una
+      señal secundaria: el cliente oficial siempre añade <code>DofusTouch Client 3.14.0</code>
+      a la cabecera de verdad. En la web ese distintivo solo existe en la capa de
+      JavaScript, y su ausencia también dice algo.
+    </p>
+  </section>
+
+  <section>
+    <h2>Qué comprueba Ankama de verdad</h2>
+    <p>
+      Merecía la pena mirarlo en lugar de suponerlo, así que se desmontó el cliente
+      oficial de Android. Lo que <strong>no</strong> tiene, buscando en su código nativo:
+      ni Play Integrity, ni SafetyNet, ni detección de root, ni fijación de certificados.
+      Cero coincidencias. Tampoco pide permisos de identificadores de hardware — solo el
+      identificador de publicidad, que usa su SDK de atribución.
+    </p>
+    <p>
+      Y un detalle que dice mucho: su propia configuración de Cordova le ordena al
+      navegador interno del login presentarse como un <strong>iPhone</strong>. Una
+      aplicación de Android que declara ser iOS en su pantalla de identificación. Si
+      cruzasen capas de identidad, romperían su propio cliente.
+    </p>
+    <p>
+      Lo que sí hay es otra cosa, y más interesante. El cliente calcula dos hashes a
+      partir del identificador del aparato — los llama <code>hm1</code> y
+      <code>hm2</code>, el segundo es el primero escrito al revés — y los manda al crear
+      un dispositivo de confianza. Ese par no es solo un identificador: es la
+      <strong>clave con la que se cifra el certificado</strong> de Ankama Shield. Su
+      propio código lo admite en un aviso: el certificado no se puede descifrar «cuando
+      la huella ha cambiado».
+    </p>
+    <p>
+      El identificador sale del <code>uuid</code> de Cordova, y si no hay ninguno recurre
+      a una huella de navegador. Aquí es donde cada versión de Lindo dice algo distinto:
+    </p>
+
+    <div class="tabla-envoltorio">
+      <table>
+        <thead>
+          <tr><th>Versión</th><th>Qué manda como identificador</th><th>Consecuencia</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="origen">APK</td>
+            <td>el Android ID real del aparato</td>
+            <td class="si">correcto: uno por dispositivo</td>
+          </tr>
+          <tr>
+            <td class="origen">Electron</td>
+            <td>hash del propio ejecutable empaquetado</td>
+            <td class="no">igual para todos los usuarios de una versión, y cambia en cada actualización</td>
+          </tr>
+          <tr>
+            <td class="origen">Web</td>
+            <td>la cadena <code>web</code></td>
+            <td class="no">idéntico para todo el mundo, siempre</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Eso explica un síntoma que parecía inexplicable: en el escritorio, actualizar Lindo
+      cambia el hash del ejecutable, la huella deja de coincidir y Ankama vuelve a pedir
+      el código de seguridad por correo. No es un fallo del login — es el certificado que
+      ya no se puede descifrar.
+    </p>
+  </section>
+
+  <section>
     <h2>La lección más cara: dónde vive el proxy</h2>
     <p>
       Durante mucho tiempo el cliente hablaba con haapi a través de un proxy propio, en
@@ -551,7 +668,9 @@
 
   <footer>
     Cifras medidas contra los servidores reales el 17 de agosto de 2026.<br />
-    manifest.json 177 B · build/script.js 5 357 360 B · 18 reglas de parcheo (17 en el bundle, 1 en el CSS).
+    manifest.json 177 B · build/script.js 5 357 360 B · 18 reglas de parcheo (17 en el bundle, 1 en el CSS).<br />
+    El análisis del cliente oficial es estático, sobre su APK 3.14.0 desempaquetado: busca nombres de clases y
+    cadenas de texto. Un mecanismo llamado por reflexión o con los nombres ofuscados no aparecería.
   </footer>
 
 </div>
