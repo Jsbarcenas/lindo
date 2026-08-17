@@ -48,6 +48,13 @@ export class Application {
         origin: '*'
       })
     )
+    // sin referer hacia fuera: static.ankama.com sirve las imágenes de noticias
+    // detrás de una lista blanca de referers, y `http://localhost:<puerto>` no
+    // está en ella. Va como cabecera además de como <meta> en el shell.
+    serveGameServer.use((_request, response, next) => {
+      response.setHeader('Referrer-Policy', 'same-origin')
+      next()
+    })
     serveGameServer.use('/game', express.static(GAME_PATH))
     serveGameServer.use('/renderer', express.static(join(import.meta.dirname, '../renderer/')))
     serveGameServer.use('/character-images', express.static(CHARACTER_IMAGES_PATH))

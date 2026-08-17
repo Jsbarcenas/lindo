@@ -171,6 +171,12 @@ internal class ShellServer(private val context: Context) {
     val body = readAsset(name)
     if (body != null) {
       val headers = mutableMapOf<String, String>()
+      // sin referer hacia fuera: static.ankama.com sirve las imágenes de
+      // noticias detrás de una lista blanca de referers y contesta 403 a
+      // cualquiera que no sea suyo, y el origen de loopback no lo es. Va como
+      // cabecera además de como <meta> en el shell para no depender de qué
+      // versión del HTML haya quedado empaquetada.
+      headers["Referrer-Policy"] = "same-origin"
       // el worker se registra en la raíz, y esta cabecera se lo permite
       if (name.endsWith(".js")) headers["Service-Worker-Allowed"] = "/"
       return respond(output, 200, mimeOf(name), body, headers)

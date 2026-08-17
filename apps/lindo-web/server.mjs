@@ -102,6 +102,11 @@ http
       'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream',
       'Content-Length': body.length,
       'Cache-Control': cacheFor(url.pathname),
+      // sin referer hacia fuera: static.ankama.com sirve las imágenes de
+      // noticias detrás de una lista blanca de referers y contesta 403 a
+      // cualquiera que no sea suyo. Va como cabecera y no solo como <meta> en
+      // el shell porque así se aplica aunque el HTML venga de una caché.
+      'Referrer-Policy': 'same-origin',
       // el worker se llama lindo-sw.js desde que pasó a servir también el
       // cliente; el nombre viejo se quedó aquí y esta cabecera no se ponía nunca
       ...(file.endsWith('lindo-sw.js') ? { 'Service-Worker-Allowed': '/' } : {})

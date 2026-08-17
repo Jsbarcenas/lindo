@@ -1,0 +1,12 @@
+# Netlify, y cualquier host que lea este formato.
+#
+# `static.ankama.com` sirve las imágenes de noticias detrás de una lista blanca
+# de referers: sin referer responde 200, con uno suyo responde 200, y con
+# cualquier otro responde 403. El cliente real corre sobre `file://` y no manda
+# ninguno; nosotros servimos por http y sí. El síntoma es un carrusel de
+# recuadros vacíos.
+#
+# Va como cabecera además de como <meta> en el shell porque así se aplica
+# aunque el HTML se sirva desde una caché.
+/*
+  Referrer-Policy: same-origin

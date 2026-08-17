@@ -13,7 +13,10 @@
   "headers": [
     {
       "source": "/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Referrer-Policy", "value": "same-origin" }
+      ]
     },
     {
       "source": "/assets/(.*)",
