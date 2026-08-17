@@ -1,0 +1,557 @@
+<title>Lindo por dentro</title>
+<style>
+  /* ---------- tokens: tema claro completo ---------- */
+  :root {
+    --ground: #eef2f2;
+    --surface: #ffffff;
+    --surface-sunk: #e4eaea;
+    --ink: #101c1b;
+    --ink-soft: #354746;
+    --muted: #5c6d6c;
+    --line: #cfdada;
+    --line-soft: #dfe7e7;
+
+    /* teal = lo que escribimos nosotros · ocre = infraestructura de Ankama */
+    --nuestro: #0d6b66;
+    --nuestro-suave: #dcecea;
+    --ankama: #8f6111;
+    --ankama-suave: #f4e9d4;
+    --fallo: #9d2f26;
+    --fallo-suave: #f6e2df;
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --serif: Charter, "Iowan Old Style", Georgia, "Times New Roman", serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0c1312;
+      --surface: #141e1d;
+      --surface-sunk: #101817;
+      --ink: #e3ebea;
+      --ink-soft: #c2d0ce;
+      --muted: #8ea2a0;
+      --line: #263433;
+      --line-soft: #1d2827;
+
+      --nuestro: #56c4b7;
+      --nuestro-suave: #122b29;
+      --ankama: #d8a458;
+      --ankama-suave: #2b2213;
+      --fallo: #e6867b;
+      --fallo-suave: #2e1a18;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0c1312;
+    --surface: #141e1d;
+    --surface-sunk: #101817;
+    --ink: #e3ebea;
+    --ink-soft: #c2d0ce;
+    --muted: #8ea2a0;
+    --line: #263433;
+    --line-soft: #1d2827;
+
+    --nuestro: #56c4b7;
+    --nuestro-suave: #122b29;
+    --ankama: #d8a458;
+    --ankama-suave: #2b2213;
+    --fallo: #e6867b;
+    --fallo-suave: #2e1a18;
+  }
+
+  /* ---------- base ---------- */
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hoja {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 5vw, 3rem) 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  p { max-width: 40rem; }
+  a { color: var(--nuestro); }
+
+  h1, h2, h3 {
+    font-family: var(--sans);
+    text-wrap: balance;
+    line-height: 1.15;
+    letter-spacing: -0.022em;
+  }
+
+  h1 { font-size: clamp(2.1rem, 6vw, 3.1rem); font-weight: 700; }
+  h2 { font-size: clamp(1.4rem, 3.4vw, 1.85rem); font-weight: 650; }
+  h3 { font-size: 1.075rem; font-weight: 650; letter-spacing: -0.012em; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  code, .dato { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  code {
+    font-size: 0.855em;
+    background: var(--surface-sunk);
+    border-radius: 3px;
+    padding: 0.1em 0.34em;
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- portada ---------- */
+  .portada { display: flex; flex-direction: column; gap: 1.1rem; }
+  .portada p.tesis {
+    font-size: clamp(1.1rem, 2.4vw, 1.3rem);
+    color: var(--ink-soft);
+    max-width: 36rem;
+  }
+  .regla { height: 1px; background: var(--line); border: 0; }
+
+  /* ---------- secciones ---------- */
+  section { display: flex; flex-direction: column; gap: 1.15rem; }
+  section > h2 { margin-bottom: -0.2rem; }
+
+  /* ---------- leyenda de color ---------- */
+  .leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+  }
+  .leyenda span { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .punto { width: 0.62rem; height: 0.62rem; border-radius: 50%; flex: none; }
+  .punto.a { background: var(--ankama); }
+  .punto.n { background: var(--nuestro); }
+
+  /* ---------- cadena / diagrama ---------- */
+  .cadena {
+    display: flex;
+    align-items: stretch;
+    gap: 0.55rem;
+    padding: 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+  .nodo {
+    flex: 1 1 0;
+    min-width: 8.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.85rem 0.9rem;
+    border-radius: 7px;
+    border: 1px solid transparent;
+  }
+  .nodo.a { background: var(--ankama-suave); border-color: color-mix(in srgb, var(--ankama) 26%, transparent); }
+  .nodo.n { background: var(--nuestro-suave); border-color: color-mix(in srgb, var(--nuestro) 26%, transparent); }
+  .nodo .quien {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+  .nodo.a .quien { color: var(--ankama); }
+  .nodo.n .quien { color: var(--nuestro); }
+  .nodo .que { font-family: var(--sans); font-size: 0.9rem; font-weight: 620; line-height: 1.3; }
+  .nodo .detalle { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); line-height: 1.45; overflow-wrap: anywhere; }
+  .flecha {
+    align-self: center;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    flex: none;
+  }
+
+  @media (max-width: 46rem) {
+    .cadena { flex-direction: column; }
+    .flecha { transform: rotate(90deg); }
+  }
+
+  /* ---------- cifras ---------- */
+  .cifras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 1px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .cifra { background: var(--surface); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.15rem; }
+  .cifra b {
+    font-family: var(--sans);
+    font-size: 1.5rem;
+    font-weight: 660;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .cifra span { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
+
+  /* ---------- tabla ---------- */
+  .tabla-envoltorio { overflow-x: auto; border: 1px solid var(--line-soft); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.7rem 0.95rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th {
+    font-family: var(--mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  td.origen { font-family: var(--mono); font-size: 0.78rem; white-space: nowrap; }
+  .si { color: var(--nuestro); font-weight: 700; }
+  .no { color: var(--fallo); font-weight: 700; }
+
+  /* ---------- fallos ---------- */
+  .fallos { display: flex; flex-direction: column; gap: 0.75rem; }
+  .fallo {
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--fallo);
+    border-radius: 7px;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .fallo .sintoma { font-family: var(--sans); font-weight: 620; font-size: 0.95rem; }
+  .fallo .causa { font-size: 0.925rem; color: var(--ink-soft); }
+  .fallo .causa b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- nota ---------- */
+  .nota {
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .nota .eyebrow { color: var(--nuestro); }
+  .nota p { font-size: 0.95rem; margin: 0; }
+
+  footer {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+    line-height: 1.7;
+  }
+
+  :focus-visible { outline: 2px solid var(--nuestro); outline-offset: 3px; border-radius: 3px; }
+</style>
+
+<div class="hoja">
+
+  <header class="portada">
+    <p class="eyebrow">Lindo · cómo funciona</p>
+    <h1>El cliente no viene dentro. Se recoge del CDN cada vez.</h1>
+    <p class="tesis">
+      Lindo no distribuye Dofus Touch. Distribuye una ventana vacía que, al abrirse,
+      descarga el cliente oficial de los propios servidores de Ankama, le reescribe
+      dieciocho líneas y lo ejecuta. Todo lo demás — el escritorio, el móvil, la web —
+      son tres carcasas distintas alrededor de ese mismo gesto.
+    </p>
+    <hr class="regla" />
+  </header>
+
+  <section>
+    <h2>Por qué un CDN lo hace posible</h2>
+    <p>
+      La clave está en algo que Ankama necesita por sus propios motivos: el cliente de
+      Dofus Touch tiene que llegar a millones de móviles sin que nadie inicie sesión
+      para descargarlo. Así que vive en un servidor público y estático, y consiste
+      exactamente en <strong>dos ficheros</strong>.
+    </p>
+
+    <div class="cifras">
+      <div class="cifra"><b>177 B</b><span>el manifiesto entero</span></div>
+      <div class="cifra"><b>2</b><span>ficheros que forman el cliente</span></div>
+      <div class="cifra"><b>5,36 MB</b><span>build/script.js</span></div>
+      <div class="cifra"><b>18</b><span>reglas de parcheo</span></div>
+    </div>
+
+    <p>
+      Ese manifiesto de 177 bytes es la pieza que lo cambia todo. No lleva fechas ni
+      números de versión: lleva un hash opaco por fichero. Comprobar si hay novedades
+      cuesta una petición minúscula, y comparar dos cadenas de texto. Si los hashes no
+      han cambiado, no se descarga nada.
+    </p>
+
+    <div class="leyenda">
+      <span><i class="punto a"></i> infraestructura de Ankama</span>
+      <span><i class="punto n"></i> código de Lindo</span>
+    </div>
+
+    <div class="cadena">
+      <div class="nodo a">
+        <span class="quien">CDN</span>
+        <span class="que">manifest.json</span>
+        <span class="detalle">177 B · dos hashes</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo n">
+        <span class="que">¿Cambió algo?</span>
+        <span class="detalle">compara con lo guardado</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo a">
+        <span class="quien">CDN</span>
+        <span class="que">build/script.js</span>
+        <span class="detalle">5,36 MB · solo si cambió</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo n">
+        <span class="que">Parchear</span>
+        <span class="detalle">beautify + 18 regex</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo n">
+        <span class="que">IndexedDB</span>
+        <span class="detalle">guardado ya parcheado</span>
+      </div>
+    </div>
+
+    <p>
+      El coste se midió en vez de suponerse: la descarga ronda el medio segundo, poner
+      el código minificado en formato legible tarda unos 480 ms, y las dieciocho
+      sustituciones 56 ms. Alrededor de un segundo, una sola vez, y solo los días en
+      que Ankama publica algo. Por eso el cliente puede permitirse hacerlo en cada
+      visita en lugar de congelar una copia dentro de la aplicación.
+    </p>
+  </section>
+
+  <section>
+    <h2>El truco de servirlo de vuelta</h2>
+    <p>
+      Queda un problema bonito: el cliente descargado espera encontrarse a sí mismo en
+      <code>build/script.js</code>, porque así lo dice su propio HTML. Pero ese fichero
+      ya no existe en ningún disco — vive dentro de IndexedDB, dentro del navegador.
+    </p>
+    <p>
+      Lo resuelve un <em>service worker</em> que intercepta las peticiones a
+      <code>/game/build/*</code> y responde con lo que hay guardado. Para el juego, la
+      URL sigue existiendo y devuelve lo de siempre. No hay que tocar ni una línea del
+      código de Ankama para que encaje: se le cambia el suelo bajo los pies sin que se
+      entere.
+    </p>
+    <p>
+      Ese mismo worker es el que sirve los retratos de personaje que el juego dibuja
+      sobre un canvas. Y no cachea nada más, a propósito: el juego habla con Ankama
+      constantemente, y esas respuestas no tienen por qué pasar por ahí.
+    </p>
+  </section>
+
+  <section>
+    <h2>Los parches, y por qué hay que embellecer antes</h2>
+    <p>
+      Las dieciocho reglas son sustituciones de texto sobre el bundle. Pero el bundle
+      llega minificado, con los nombres de variables reducidos a una o dos letras y sin
+      un solo espacio de más — imposible escribir un patrón estable contra eso. Por eso
+      primero se pasa por un embellecedor, que le devuelve una forma predecible, y
+      luego se sustituye.
+    </p>
+    <p>
+      Cada regla que deja de encontrar su objetivo avisa por consola. Es deliberado: un
+      parche que falla en silencio es la manera de que el cliente vuelva a presentarse
+      como algo que no es, y nadie se entere hasta que Ankama lo rechaza.
+    </p>
+    <p>
+      Lo que hacen, en dos ejemplos reales: uno hace que el cliente se identifique como
+      Android — el juego solo existe para móvil, y el escritorio tiene que hablar su
+      idioma. Otro corrige un fallo del propio cliente, que al refrescar la clave de
+      sesión devolvía la petición en lugar de la respuesta, con lo que nunca llegaba a
+      leerse el estado de seguridad. Ese segundo parche arregló el login en las tres
+      versiones a la vez.
+    </p>
+  </section>
+
+  <section>
+    <h2>La autenticación, en cuatro saltos</h2>
+    <p>
+      Aquí conviene separar tres sistemas que es fácil confundir en uno. El
+      <strong>CDN</strong> te da el programa. <strong>Haapi</strong> te da la identidad.
+      El <strong>socket del juego</strong> es la partida. Son tres servicios distintos,
+      y el login los recorre en orden.
+    </p>
+
+    <div class="cadena">
+      <div class="nodo a">
+        <span class="quien">Paso 1</span>
+        <span class="que">Ankama Connect</span>
+        <span class="detalle">auth.ankama.com → código</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo a">
+        <span class="quien">Paso 2</span>
+        <span class="que">Haapi</span>
+        <span class="detalle">código → apikey</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo a">
+        <span class="quien">Paso 3</span>
+        <span class="que">CreateToken</span>
+        <span class="detalle">apikey → token (game=18)</span>
+      </div>
+      <span class="flecha">→</span>
+      <div class="nodo a">
+        <span class="quien">Paso 4</span>
+        <span class="que">Socket del juego</span>
+        <span class="detalle">wss:// · token</span>
+      </div>
+    </div>
+
+    <p>
+      El código del paso 1 <strong>se gasta al usarse una sola vez</strong>. Esa
+      propiedad, que suena a detalle menor, fue la causa del bug más difícil del móvil:
+      la aplicación cargaba la URL de retorno para leer el código de ahí, y con solo
+      pedir esa página el servidor de Ankama ya lo daba por consumido. El código que
+      luego se entregaba al juego era un código muerto. Se arregla no cargando nunca esa
+      página: se intercepta la navegación, se lee el código de la URL y se cancela la
+      petición antes de que salga.
+    </p>
+  </section>
+
+  <section>
+    <h2>La lección más cara: dónde vive el proxy</h2>
+    <p>
+      Durante mucho tiempo el cliente hablaba con haapi a través de un proxy propio, en
+      el mismo origen. La razón era buena: el navegador bloqueaba la cabecera con la
+      clave, y desde servidor no hay CORS que bloquear nada.
+    </p>
+    <p>
+      El problema apareció al alojar la web fuera de casa. <strong>Haapi valida la
+      clave contra la dirección desde la que se pide.</strong> Con un proxy en un
+      servidor remoto, la petición sale desde ese servidor y no desde el jugador, y
+      Ankama responde 403 a una clave que desde el ordenador del jugador funciona
+      perfectamente. No es un problema de un proveedor concreto: ningún proxy alojado
+      lejos puede funcionar, por bien escrito que esté.
+    </p>
+    <p>
+      Y el bloqueo original resultó ser mucho más estrecho de lo que parecía. Medido
+      origen por origen:
+    </p>
+
+    <div class="tabla-envoltorio">
+      <table>
+        <thead>
+          <tr><th>Origen que pregunta</th><th>Respuesta al preflight</th><th>¿Deja mandar la clave?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="origen">https://cualquier-cosa</td>
+            <td>refleja el origen, permite <code>APIKEY</code></td>
+            <td class="si">Sí</td>
+          </tr>
+          <tr>
+            <td class="origen">http://127.0.0.1:puerto</td>
+            <td>refleja el origen, permite <code>APIKEY</code></td>
+            <td class="si">Sí</td>
+          </tr>
+          <tr>
+            <td class="origen">http://localhost:puerto</td>
+            <td><code>*</code>, sin lista de cabeceras</td>
+            <td class="no">No</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Solo <code>localhost</code> está roto. Y <code>localhost</code> es exactamente
+      donde se diagnosticó el asunto la primera vez, así que una peculiaridad se
+      convirtió en una regla general, y esa regla acabó siendo lo que rompía el login
+      en producción. Hoy la decisión es una condición de una línea: proxy sobre
+      <code>http</code>, directo sobre <code>https</code>. Todo lo que ya funcionaba
+      —el servidor de desarrollo y el servidor interno del APK— corre al lado del
+      jugador, y sigue igual.
+    </p>
+  </section>
+
+  <section>
+    <h2>Fallos que enseñaron algo</h2>
+    <p>
+      Casi todos comparten una forma: desde fuera se veían idénticos —pantalla negra, o
+      un cartel del juego describiendo un síntoma que no era la causa— y la única
+      manera de distinguirlos fue mirar la red por dentro.
+    </p>
+
+    <div class="fallos">
+      <div class="fallo">
+        <span class="sintoma">«Todos los servidores están en mantenimiento» al entrar en el móvil</span>
+        <span class="causa">El servidor interno del APK <b>no reenviaba el cuerpo</b> de las peticiones POST. Ankama contestaba 422 y el cliente traducía eso a mantenimiento.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">Pantalla negra tras «Comprobando actualizaciones»</span>
+        <span class="causa">El emulador tenía IP pero <b>no resolvía nombres</b>. Salía como un error de red genérico, indistinguible de un fallo propio.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">El formulario de Ankama se abortaba a media carga</span>
+        <span class="causa">La captura del código de vuelta reaccionaba a <b>cualquier URL con <code>code=</code></b>. La solución fue leer el destino real, que viene escrito en la propia petición de autorización.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">Todas las instalaciones apuntando a un entorno que rechaza conexiones</span>
+        <span class="causa">Un dominio de Ankama <b>dejó de resolver</b>, lo que empujaba a todos al origen alternativo — y ese sirve una compilación fijada al entorno de pruebas.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">Pantalla negra al lanzar en modo desarrollo</span>
+        <span class="causa">La copia del cliente a los recursos del APK <b>vivía dentro del script de release</b>, así que el modo desarrollo levantaba el servidor interno sin nada que servir.</span>
+      </div>
+      <div class="fallo">
+        <span class="sintoma">403 al llamar a la cuenta desde la web alojada</span>
+        <span class="causa">Tres diagnósticos, y los dos primeros equivocados. No era que la cabecera no llegase —una sonda demostró que sí—, sino <b>desde dónde salía la petición</b>.</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Por qué esto se sostiene</h2>
+    <div class="nota">
+      <p class="eyebrow">La idea en una frase</p>
+      <p>
+        El cliente que se ejecuta es el de Ankama, recién descargado de los servidores de
+        Ankama, con la sesión de un jugador que se ha autenticado contra Ankama. Lindo
+        aporta la ventana, el actualizador, la identidad de plataforma y las comodidades
+        alrededor — todo escrito desde cero — pero no aloja ni redistribuye el juego.
+      </p>
+      <p>
+        Ese reparto es lo que hace que un CDN público baste, y también lo que mantiene la
+        cosa viva: cuando Ankama publica una versión, el manifiesto cambia de hash y en
+        la siguiente visita ya está. No hay que empaquetar nada de nuevo.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    Cifras medidas contra los servidores reales el 17 de agosto de 2026.<br />
+    manifest.json 177 B · build/script.js 5 357 360 B · 18 reglas de parcheo (17 en el bundle, 1 en el CSS).
+  </footer>
+
+</div>
