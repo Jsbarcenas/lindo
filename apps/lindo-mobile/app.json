@@ -22,7 +22,8 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
-      "./plugins/with-loopback-cleartext"
+      "./plugins/with-loopback-cleartext",
+      "./plugins/with-shell-assets"
     ]
   }
 }

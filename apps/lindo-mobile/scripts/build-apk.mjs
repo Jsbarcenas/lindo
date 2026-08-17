@@ -17,9 +17,12 @@
  */
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const { stageShell } = createRequire(import.meta.url)('./stage-shell.cjs')
 
 const APP = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const ANDROID = path.join(APP, 'android')
@@ -94,23 +97,16 @@ fs.writeFileSync(path.join(ANDROID, 'local.properties'), `sdk.dir=${sdk}\n`)
 /**
  * El shell, dentro del APK.
  *
- * Se compila y se copia después del prebuild porque el prebuild regenera
- * `android/` entero, assets incluidos. Con una URL remota no hace falta: el
- * cliente vendrá de ahí y meterlo además solo engordaría el APK.
+ * Se copia después del prebuild porque el prebuild regenera `android/` entero,
+ * assets incluidos. Lo hace además el plugin `with-shell-assets`, que es quien
+ * cubre `expo run:android`; aquí se repite con `force` para que un release
+ * nunca salga con un `dist` viejo. Es idempotente.
  */
-if (!process.env.EXPO_PUBLIC_LINDO_URL) {
-  console.log('==> compilando apps/lindo-web')
-  run('pnpm', ['--filter', 'lindo-web', 'build'], { cwd: path.join(APP, '..', '..') })
-
-  const web = path.join(APP, '..', 'lindo-web', 'dist')
-  if (!fs.existsSync(web)) {
-    console.error(`No hay build web en ${web}`)
-    process.exit(1)
-  }
-  const shell = path.join(ANDROID, 'app', 'src', 'main', 'assets', 'shell')
-  fs.rmSync(shell, { recursive: true, force: true })
-  fs.cpSync(web, shell, { recursive: true })
-  console.log(`==> shell empaquetado desde ${path.relative(process.cwd(), web)}`)
+try {
+  stageShell({ androidRoot: ANDROID, force: true })
+} catch (error) {
+  console.error(error.message)
+  process.exit(1)
 }
 
 console.log('==> assembleRelease')
