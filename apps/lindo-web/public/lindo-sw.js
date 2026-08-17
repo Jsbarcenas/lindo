@@ -61,8 +61,41 @@ const serveShell = async (pathname) => {
   })
 }
 
+/**
+ * Las imágenes de noticias, pedidas sin referer.
+ *
+ * `static.ankama.com` las sirve detrás de una lista blanca de referers: sin
+ * referer responde 200, con uno suyo responde 200, y con cualquier otro
+ * responde 403 con `content-type: text/html` - que el navegador entonces
+ * bloquea por ORB, y el carrusel queda en recuadros vacíos. El cliente real
+ * corre sobre `file://` y no manda ninguno.
+ *
+ * Declarar la política en el documento no basta, y esto costó encontrarlo:
+ * Chrome **no aplica la política del documento a las peticiones que nacen de
+ * CSS**, y el carrusel las pide con `background-image`. Medido dentro del
+ * WebView, misma URL y mismo documento:
+ *
+ *   new Image()        política=same-origin                    referer=(ninguno)
+ *   background-image   política=strict-origin-when-cross-origin referer=http://…
+ *
+ * Aquí sí se puede: la petición se reemite desde el worker con
+ * `referrerPolicy: 'no-referrer'`, y eso vale venga de donde venga. La
+ * respuesta es opaca, que es todo lo que un fondo CSS necesita.
+ *
+ * Electron no pasa por aquí -no registra worker- y no lo necesita: allí se
+ * quita el referer en la capa de red, en `game-window.ts`.
+ */
+const CMS = 'static.ankama.com'
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
+
+  if (url.hostname === CMS) {
+    return event.respondWith(
+      fetch(url.href, { mode: 'no-cors', credentials: 'omit', referrerPolicy: 'no-referrer' })
+    )
+  }
+
   if (url.origin !== self.location.origin) return
 
   if (url.pathname.startsWith(IMAGES)) return event.respondWith(servePortrait(url.pathname))

@@ -95,7 +95,21 @@ export class GameWindow extends (EventEmitter as new () => TypedEmitter<GameWind
     this._win.webContents.session.webRequest.onBeforeSendHeaders((details, callback) => {
       const requestHeaders = { ...(details.requestHeaders ?? {}) }
 
-      // when Referer is send to the ankama server, the request can be blocked
+      /**
+       * Sin referer hacia el CDN de contenidos de Ankama.
+       *
+       * `static.ankama.com` sirve las imágenes del carrusel de noticias detrás
+       * de una lista blanca de referers y contesta 403 -con `content-type:
+       * text/html`, que el navegador además bloquea por ORB- a cualquiera que
+       * no sea suyo. El cliente real corre sobre `file://` y no manda ninguno.
+       *
+       * Se hace aquí y no declarando la política en el documento porque Chrome
+       * no aplica la del documento a las peticiones que nacen de CSS, y estas
+       * nacen de un `background-image`. Medido: la misma URL pedida con
+       * `new Image()` sale con `same-origin` y sin referer, y pedida por CSS
+       * sale con la política por defecto y con él. En la capa de red no existe
+       * esa distinción, y por eso este es el sitio.
+       */
       if (details.url.startsWith('https://static.ankama.com/')) {
         delete requestHeaders.Referer
       }
