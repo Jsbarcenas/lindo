@@ -1,6 +1,23 @@
 <!DOCTYPE HTML>
 <html lang="fr">
     <head>
+        <!-- Sin referer hacia fuera. Va primero porque gobierna toda petición
+             que salga de este documento, y la primera sale enseguida.
+
+             `static.ankama.com` sirve las imágenes del carrusel de noticias
+             detrás de una lista blanca de referers: sin referer responde 200,
+             con `www.dofus-touch.com` o `*.ankama-games.com` responde 200, y
+             con cualquier otro responde 403. El cliente real corre sobre
+             `file://` y no manda ninguno, así que nunca se topa con la regla;
+             nosotros servimos por http y la cumplíamos de lleno. El síntoma es
+             un carrusel de recuadros vacíos, en las tres versiones.
+
+             `same-origin` y no `no-referrer` porque basta: quita el referer en
+             lo que sale fuera, que es donde molesta, y lo deja intacto dentro
+             de este origen. El `Origin` de CORS no lo toca esta política, así
+             que las llamadas a haapi siguen igual. -->
+        <meta name="referrer" content="same-origin">
+
         <!-- Must be loaded, not inlined, and before anything else runs: the
              installer is applied to every realm the page creates, so it has to
              exist before the first one does. -->

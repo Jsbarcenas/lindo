@@ -568,6 +568,17 @@
       // --- orientation ---
       if (inputTraits) {
         defineGetter(win, 'orientation', 0)
+        // `"onorientationchange" in window` es uno de los cuatro puntos con los
+        // que FingerprintJS decide si algo es un móvil - junto a `"orientation"
+        // in window`, la ausencia de SharedWorker en WebKit y un appVersion que
+        // diga android. Un navegador móvil lo trae declarado y valiendo null;
+        // uno de escritorio no lo trae en absoluto, así que teniendo el de al
+        // lado y no este la pareja se contradecía.
+        if (!('onorientationchange' in win)) {
+          try {
+            win.onorientationchange = null
+          } catch (e) {}
+        }
         if (win.screen && win.screen.orientation) {
           var orientationProto = win.ScreenOrientation ? win.ScreenOrientation.prototype : win.screen.orientation
           defineGetter(orientationProto, 'type', 'portrait-primary')
