@@ -99,11 +99,11 @@ fs.writeFileSync(path.join(ANDROID, 'local.properties'), `sdk.dir=${sdk}\n`)
  *
  * Se copia después del prebuild porque el prebuild regenera `android/` entero,
  * assets incluidos. Lo hace además el plugin `with-shell-assets`, que es quien
- * cubre `expo run:android`; aquí se repite con `force` para que un release
- * nunca salga con un `dist` viejo. Es idempotente.
+ * cubre `expo run:android`; aquí se repite por si el prebuild
+ * no llegó a correr. Compila siempre, así que nunca sale con un `dist` viejo.
  */
 try {
-  stageShell({ androidRoot: ANDROID, force: true })
+  stageShell({ androidRoot: ANDROID })
 } catch (error) {
   console.error(error.message)
   process.exit(1)

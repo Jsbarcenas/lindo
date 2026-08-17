@@ -21,22 +21,25 @@ const REPO = path.join(APP, '..', '..')
 const WEB = path.join(REPO, 'apps', 'lindo-web', 'dist')
 
 /**
- * @param {{ androidRoot?: string, force?: boolean }} options
+ * @param {{ androidRoot?: string }} options
  *   `androidRoot` lo pasa el plugin, que conoce la ruta del proyecto nativo
- *   antes de que exista donde la esperamos. `force` recompila el cliente aunque
- *   ya haya un `dist`: lo quiere el release, no el día a día.
+ *   antes de que exista donde la esperamos.
  * @returns {string | null} dónde quedó, o null si no hacía falta
+ *
+ * Compila siempre. Antes solo lo hacía si faltaba `dist`, y eso empaquetaba en
+ * el APK lo que hubiera quedado de una compilación anterior: se arregló el
+ * shell, se reinstaló, y el aparato seguía con el cliente viejo sin que nada lo
+ * dijera. Un `vite build` cuesta un par de segundos; equivocarse de cliente
+ * cuesta una tarde.
  */
-function stageShell({ androidRoot, force = false } = {}) {
+function stageShell({ androidRoot } = {}) {
   // con una URL remota el cliente viene de ahí, y meterlo además solo engordaría
   // el APK
   if (process.env.EXPO_PUBLIC_LINDO_URL) return null
 
-  if (force || !fs.existsSync(path.join(WEB, 'index.html'))) {
-    console.log('==> compilando apps/lindo-web')
-    const build = spawnSync('pnpm', ['--filter', 'lindo-web', 'build'], { cwd: REPO, stdio: 'inherit' })
-    if (build.status !== 0) throw new Error('no se pudo compilar apps/lindo-web')
-  }
+  console.log('==> compilando apps/lindo-web')
+  const build = spawnSync('pnpm', ['--filter', 'lindo-web', 'build'], { cwd: REPO, stdio: 'inherit' })
+  if (build.status !== 0) throw new Error('no se pudo compilar apps/lindo-web')
   if (!fs.existsSync(path.join(WEB, 'index.html'))) {
     throw new Error(`No hay build web en ${WEB}`)
   }
@@ -53,7 +56,7 @@ module.exports = { stageShell }
 
 if (require.main === module) {
   try {
-    stageShell({ force: process.argv.includes('--force') })
+    stageShell()
   } catch (error) {
     console.error(error.message)
     process.exit(1)
