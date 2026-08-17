@@ -19,7 +19,15 @@ export interface NativeDevice {
   manufacturer: string
   isVirtual: boolean
   serial: string
-  uuid: string
+  /**
+   * El ANDROID_ID del aparato, y `undefined` si el sistema no lo da.
+   *
+   * Antes caía en la cadena `lindo`, que habría hecho que todos los aparatos
+   * sin ANDROID_ID se presentaran como el mismo - el mismo fallo que tenía la
+   * web con la cadena `web`. Dejándolo sin definir, el shell usa el suyo
+   * propio, que sí es persistente y distinto por instalación.
+   */
+  uuid?: string
 }
 
 export interface NativeInfo {
@@ -51,7 +59,7 @@ export const collectNativeInfo = (): NativeInfo => {
       // el cliente real no puede leer el serial desde Android 10; el suyo
       // también responde "unknown"
       serial: 'unknown',
-      uuid: (Application.getAndroidId?.() ?? 'lindo').slice(0, 16)
+      uuid: Application.getAndroidId?.()?.slice(0, 16) || undefined
     },
     appVersion: Application.nativeApplicationVersion ?? '0.0.0',
     isEmulator

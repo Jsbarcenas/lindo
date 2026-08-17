@@ -10,6 +10,7 @@ import {
 import { applyPatch, getSnapshot, IJsonPatch, onSnapshot } from 'mobx-state-tree'
 import { publish, publishLocal, subscribe, subscribeEverywhere } from './channel'
 import { createMasterRecord, MasterRecord, open as openSealed, openMasterRecord, seal } from './crypto'
+import { deviceId } from './device-id'
 import { forgetGame, onUpdateProgress, storedBuildVersion, updateGame } from './game-updater'
 import { installHotkeys } from './hotkeys'
 import { createAndroidProfile } from './profile'
@@ -171,7 +172,10 @@ export const createWebLindoAPI = async (): Promise<LindoAPI> => {
       changeLogSrc: '/CHANGELOG.md',
       windowId: 0,
       multiAccount: undefined,
-      hash: 'web',
+      // el identificador de aparato, no un nombre de plataforma: de aquí sale
+      // `window.key`, y de ahí el `uuid` que el cliente convierte en la clave
+      // del certificado de Ankama Shield
+      hash: deviceId(),
       platform: 'web',
       androidProfile
     }),

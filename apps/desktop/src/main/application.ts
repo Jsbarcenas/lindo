@@ -8,7 +8,6 @@ import {
   LANGUAGE_KEYS
 } from '@lindo/shared'
 import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
-import crypto from 'crypto'
 import express from 'express'
 import getPort from 'get-port'
 import { Server } from 'http'
@@ -16,8 +15,6 @@ import { observe } from 'mobx'
 import { AddressInfo } from 'net'
 import { APP_PATH, CHARACTER_IMAGES_PATH, GAME_PATH, LINDO_API } from './constants'
 import fs from 'fs-extra'
-// @vite-ignore
-import originalFs from 'original-fs'
 import { getAppMenu } from './menu'
 import { MultiAccount } from './multi-account'
 import { runUpdater } from './updater'
@@ -29,6 +26,7 @@ import { logger, setupRendererLogger } from './logger'
 import axios from 'axios'
 import { Locales } from '@lindo/i18n'
 import { platform } from 'os'
+import { deviceId } from './device-id'
 
 export class Application {
   private static _instance: Application
@@ -41,19 +39,7 @@ export class Application {
       throw new Error('Application already initialized')
     }
 
-    // generate a hash for the app for randomization
-    let hash: string
-    if (app.isPackaged) {
-      const path = app.getAppPath()
-      const fileBuffer = originalFs.readFileSync(path)
-      const hashSum = crypto.createHash('sha256')
-      hashSum.update(fileBuffer)
-      hash = hashSum.digest('hex')
-    } else {
-      const hashSum = crypto.createHash('sha256')
-      hashSum.update(app.name)
-      hash = hashSum.digest('hex')
-    }
+    const hash = deviceId()
 
     // create express server to serve game file
     const serveGameServer = express()

@@ -102,8 +102,9 @@ http
       'Content-Type': TYPES[path.extname(file)] ?? 'application/octet-stream',
       'Content-Length': body.length,
       'Cache-Control': cacheFor(url.pathname),
-      // the service worker that serves character portraits needs this scope
-      ...(file.endsWith('character-images-sw.js') ? { 'Service-Worker-Allowed': '/' } : {})
+      // el worker se llama lindo-sw.js desde que pasó a servir también el
+      // cliente; el nombre viejo se quedó aquí y esta cabecera no se ponía nunca
+      ...(file.endsWith('lindo-sw.js') ? { 'Service-Worker-Allowed': '/' } : {})
     }, body)
   })
   .listen(PORT, '0.0.0.0', () => console.log(`lindo-web escuchando en :${PORT}`))

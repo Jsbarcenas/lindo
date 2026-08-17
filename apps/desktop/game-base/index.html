@@ -70,7 +70,9 @@
             androidProfile.androidVersion = nativeInfo.device.version;
             androidProfile.model = nativeInfo.device.model;
             androidProfile.manufacturer = nativeInfo.device.manufacturer;
-            androidProfile.uuid = nativeInfo.device.uuid;
+            // solo si el sistema dio uno: si no, se queda el del host, que ya
+            // es persistente y distinto por instalacion
+            if (nativeInfo.device.uuid) androidProfile.uuid = nativeInfo.device.uuid;
             androidProfile.cordova = nativeInfo.device.cordova;
             androidProfile.isVirtual = nativeInfo.device.isVirtual;
         }
